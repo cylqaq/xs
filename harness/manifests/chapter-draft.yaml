@@ -1,0 +1,36 @@
+task: chapter-draft
+description: 写第 N 章前的 JIT 上下文清单
+
+before:
+  - "{novel_root}/novel.yaml"
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/state/memory/summary-rolling.md"
+  - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/background/premise.md"
+  - "{novel_root}/canon/plot/beats/ch-{chapter_padded}.md"
+  - "{novel_root}/registries/foreshadowing.yaml"
+  - "{novel_root}/registries/hooks.yaml"
+  - "{novel_root}/registries/open-threads.yaml"
+  - "{novel_root}/registries/chekhov-guns.yaml"
+  - "{novel_root}/canon/style/glossary.md"
+
+skills:
+  - context-router
+  - chapter-production
+  - dialogue-craftsman
+
+optional_if_exists:
+  - "{novel_root}/state/memory/chapter-summaries/ch-{prev_chapter_padded}.yaml"
+
+during_write:
+  - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+
+after_must_update:
+  - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
+  - "{novel_root}/state/memory/summary-rolling.md"
+  - "{novel_root}/registries/continuity-log.yaml"
+  - "{novel_root}/novel.yaml"
+
+validators:
+  - continuity
+  - registry-consistency

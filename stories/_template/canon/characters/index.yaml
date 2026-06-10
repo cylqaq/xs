@@ -1,0 +1,8 @@
+characters: []
+# - id: char-protagonist
+#   name: 主角名
+#   file: canon/characters/char-protagonist.md
+#   role: protagonist
+#   status: active
+#   last_seen_chapter: 0
+#   appear_in: [1, 2]   # JIT 过滤：写章 N 时仅拉含 N 的角色（见 memory-system.md）

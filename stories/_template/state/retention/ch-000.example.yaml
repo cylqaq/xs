@@ -1,0 +1,7 @@
+# retention-analyst 章后输出示例（复制为 ch-{NNN}.yaml，字段见 skills/roles/retention-analyst/SKILL.md）
+chapter: 0
+opening_hook_score: 0
+cool_point_count: 0
+micro_payoffs_delivered: []
+debt_ratio: 0.0
+alerts: []

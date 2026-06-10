@@ -1,0 +1,8 @@
+# novel-orchestrator 在 bootstrap 完成后写入（复制为 bootstrap.yaml）
+completed_at: null
+seed_layers:
+  layer1: false
+  layer2: false
+  layer3: false
+premise_ready: false
+next_skill: world-architect

@@ -1,0 +1,22 @@
+task: characters
+description: Phase 02 — character-forge 人物卡与实体图
+
+skills:
+  - character-forge
+  - foreshadow-engineer
+
+before:
+  - "{novel_root}/canon/world/rules.md"
+  - "{novel_root}/canon/background/premise.md"
+  - "{novel_root}/canon/entities/graph.yaml"
+
+during_write:
+  - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/canon/entities/graph.yaml"
+
+after_must_update:
+  - "{novel_root}/registries/foreshadowing.yaml"
+  - "{novel_root}/registries/continuity-log.yaml"
+
+validators:
+  - structure

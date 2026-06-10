@@ -1,0 +1,11 @@
+# 伏笔登记册
+# status: planned | planted | hinted | resolved | abandoned
+
+items:
+  - id: fs-001
+    title: 主角佩剑上的裂纹
+    plant_chapter: 1
+    payoff_chapter: null
+    status: planned
+    canon_refs: []
+    notes: 第一章埋设视觉细节

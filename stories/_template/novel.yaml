@@ -1,0 +1,11 @@
+id: my-novel
+title: 未命名
+genre: general
+language: zh-CN
+pov: third-limited
+current_chapter: 0
+last_completed_chapter: 0
+status: ideation
+target_chapters: 80
+created_at: null
+notes: 从 _template 复制后修改 id 与 title

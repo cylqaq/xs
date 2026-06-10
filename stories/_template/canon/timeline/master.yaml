@@ -1,0 +1,4 @@
+# 故事内时间线 — 事件按叙事顺序
+# fields: id, chapter, in_story_time, summary, characters[], location
+
+events: []

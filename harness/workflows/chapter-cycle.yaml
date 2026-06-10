@@ -1,0 +1,85 @@
+# 单章多智能体微循环 — 各 Skill 隔离对话，只经 handoff + 协议文件协作
+workflow: chapter-cycle
+description: context-router → chapter-production → [dialogue] → continuity → retention → rule-reviewer → phase advance
+
+steps:
+  - id: route-context
+    skill: context-router
+    manifest: chapter-draft
+    isolation: true
+    cli_preflight:
+      - manifest chapter-draft --chapter {chapter}
+      - context --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-context-router.yaml
+
+  - id: draft
+    skill: chapter-production
+    manifest: chapter-draft
+    isolation: true
+    reads_handoff:
+      - context-router
+    requires_files:
+      - manuscripts/chapters/ch-{chapter_padded}.md
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-chapter-production.yaml
+
+  - id: dialogue
+    skill: dialogue-craftsman
+    manifest: chapter-draft
+    isolation: true
+    when_dialogue: true
+    reads_handoff:
+      - chapter-production
+    requires_files:
+      - manuscripts/chapters/ch-{chapter_padded}.md
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-dialogue-craftsman.yaml
+
+  - id: continuity
+    skill: continuity-warden
+    manifest: post-chapter
+    isolation: true
+    reads_handoff:
+      - chapter-production
+    gate: draft_ready
+    requires_files:
+      - state/memory/chapter-summaries/ch-{chapter_padded}.yaml
+      - registries/continuity-log.yaml
+    cli_preflight:
+      - manifest post-chapter --chapter {chapter}
+    cli_postflight:
+      - compact
+      - validate
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-continuity-warden.yaml
+
+  - id: retention
+    skill: retention-analyst
+    manifest: post-chapter
+    isolation: true
+    reads_handoff:
+      - continuity-warden
+    requires_files:
+      - state/retention/ch-{chapter_padded}.yaml
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-retention-analyst.yaml
+
+  - id: review
+    skill: rule-reviewer
+    isolation: true
+    reads_handoff:
+      - retention-analyst
+    cli_postflight:
+      - review --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-rule-reviewer.yaml
+    on_fail_goto: patch-cycle
+
+  - id: advance
+    skill: novel-orchestrator
+    isolation: true
+    reads_handoff:
+      - rule-reviewer
+    requires_review_pass: true
+    note: review PASS 后执行 forge phase advance --chapter {chapter}

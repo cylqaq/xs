@@ -1,0 +1,7 @@
+# Layer 2 — 深度定制（seed-intake 写入；复制为 layer2-customize.yaml）
+world_direction: ""
+pov_tone: ""
+theme: ""
+audience: ""
+target_chapters: 80
+completed: false

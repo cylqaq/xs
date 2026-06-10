@@ -1,0 +1,99 @@
+# 单书目录契约（Story Directory Schema）
+
+每部小说位于 `stories/{novel-id}/`。`novel-id`：小写、连字符，如 `starfall-saga`。
+
+## 总览
+
+```
+stories/{novel-id}/
+├── novel.yaml                 # 元数据：书名、体裁、POV、当前章
+├── AGENTS.md                  # 单书路由与禁忌
+├── seed/                      # 作者输入（想象力入口）
+│   └── author-intent.md
+├── harness/
+│   └── read-order.md          # 本书当前阶段读序（覆盖全局默认）
+├── canon/                     # 【事实层 M3】审慎更新
+│   ├── world/
+│   │   ├── overview.md        # 世界概览
+│   │   ├── rules.md           # 硬规则（魔法/科技/社会）
+│   │   ├── locations/         # 地点圣经
+│   │   └── factions/          # 势力/组织
+│   ├── background/            # 故事背景（历史、时代）
+│   │   ├── era.md
+│   │   └── premise.md         # 故事前提（与 seed 对齐后升格）
+│   ├── characters/
+│   │   ├── index.yaml         # id、file、status、last_seen_ch
+│   │   └── {char-id}.md
+│   ├── timeline/
+│   │   └── master.yaml        # 事件序：id, ch, time, summary
+│   ├── plot/
+│   │   ├── outline.md         # 宏观结构（三幕/四部等）
+│   │   ├── arcs.yaml          # 故事弧
+│   │   └── beats/             # ch-{nnn}.md 章节拍表
+│   └── style/
+│       ├── voice.md           # 叙述声音、时态、禁忌
+│       └── glossary.md        # 专有名词表
+├── canon/entities/
+│   └── graph.yaml             # 实体图（graph_hybrid）
+├── registries/                # 【追踪层 M4】高频更新
+│   ├── foreshadowing.yaml
+│   ├── hooks.yaml
+│   ├── chekhov-guns.yaml
+│   ├── open-threads.yaml
+│   ├── plot-debt.yaml         # 情节债务仪表
+│   ├── cool-points.yaml       # 爽点
+│   ├── micro-payoffs.yaml     # 微兑现
+│   └── continuity-log.yaml
+├── state/
+│   ├── phase.yaml             # 含 review_round / blocked
+│   ├── context-mode.yaml      # auto | graph_hybrid | bm25_fallback
+│   ├── batches/               # 分批续写 batch-*.yaml
+│   ├── working/
+│   ├── memory/
+│   │   ├── summary-rolling.md
+│   │   ├── chapter-summaries/
+│   │   └── keyword-index.json # BM25 兜底
+│   ├── retention/             # 追读力 ch-*.yaml
+│   ├── reviews/               # 规则评审 ch-*.json
+│   ├── revisions/             # 精修三元组
+│   ├── snapshots/             # 恢复检查点
+│   └── checkpoints/
+├── manuscripts/
+│   ├── chapters/              # ch-{nnn}.md 正文
+│   └── scenes/                # 可选：场景级草稿
+└── publish/
+    └── exports/               # 导出物
+```
+
+## 各目录职责（环环相扣且解耦）
+
+| 目录 | 回答的问题 | 谁写 | 谁读 |
+|------|-----------|------|------|
+| `seed/` | 作者想讲什么 | 人 | bootstrap skill |
+| `canon/world` | 世界是什么 | world-architect | 全员 JIT |
+| `canon/background` | 故事发生在什么背景下 | plot-architect | 写章前 |
+| `canon/characters` | 谁是谁、关系如何 | character-forge | 写章前 |
+| `canon/plot` | 结构与时序 | plot-architect | 写章前 |
+| `registries/foreshadowing` | 埋了什么、何时收 | foreshadow-engineer | 写章前/后 |
+| `registries/hooks` | 读者被什么吊着 | hook-manager | 写章前/后 |
+| `state/memory` | 前文压缩 | continuity-warden | 每章必读 |
+| `manuscripts` | 读者看到的正文 | chapter-production | 人类 |
+
+**解耦规则**：`manuscripts` 不得包含未同步到 `canon` 或 `registries` 的「秘密设定」；秘密只活在 `registries`（planned）或 `canon`（已成立）。
+
+## novel.yaml 最小字段
+
+```yaml
+id: starfall-saga
+title: 星落之歌
+genre: xuanhuan
+language: zh-CN
+pov: third-limited
+current_chapter: 0
+status: ideation  # ideation|worldbuilding|outlining|drafting|revision|publish
+target_chapters: 120
+```
+
+## 登记册条目示例
+
+见 `stories/_template/registries/*.yaml`。

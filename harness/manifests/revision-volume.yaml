@@ -1,0 +1,28 @@
+task: revision-volume
+description: Phase 07 — chief-editor + style-guardian 卷级精修
+
+skills:
+  - chief-editor
+  - style-guardian
+  - patch-refiner
+  - rule-reviewer
+
+before:
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/registries/plot-debt.yaml"
+  - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/style/glossary.md"
+  - "{novel_root}/state/checkpoints/revision-vol-01.yaml"
+
+optional_if_exists:
+  - "{novel_root}/state/reviews/ch-{chapter_padded}.json"
+
+during_write:
+  - "{novel_root}/state/revisions/ch-{chapter_padded}-r1/"
+
+after_must_update:
+  - "{novel_root}/state/phase.yaml"
+
+validators:
+  - continuity
+  - registry-consistency

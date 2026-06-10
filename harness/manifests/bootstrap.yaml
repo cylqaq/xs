@@ -1,0 +1,39 @@
+task: bootstrap
+description: Phase 00 — seed-intake + novel-bootstrap 创建链入口
+
+skills:
+  - novel-orchestrator
+  - seed-intake
+  - novel-bootstrap
+
+before:
+  - "{novel_root}/seed/author-intent.md"
+  - "{novel_root}/seed/intake-status.yaml"
+  - "{novel_root}/seed/layer1-core.yaml"
+  - "{novel_root}/novel.yaml"
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/../../harness/templates/intake-questions.yaml"
+
+optional_if_exists:
+  - "{novel_root}/seed/layer2-customize.yaml"
+  - "{novel_root}/seed/layer3-title.md"
+  - "{novel_root}/../../workspace/user-preferences.json"
+
+during_write:
+  - "{novel_root}/seed/layer1-core.yaml"
+  - "{novel_root}/seed/layer2-customize.yaml"
+  - "{novel_root}/seed/layer3-title.md"
+  - "{novel_root}/seed/intake-status.yaml"
+  - "{novel_root}/canon/background/premise.md"
+  - "{novel_root}/registries/plot-debt.yaml"
+  - "{novel_root}/state/context-mode.yaml"
+  - "{novel_root}/state/checkpoints/bootstrap.yaml"
+
+after_must_update:
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/novel.yaml"
+  - "{novel_root}/registries/continuity-log.yaml"
+
+validators:
+  - structure
+  - seed-readiness

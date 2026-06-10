@@ -1,0 +1,6 @@
+# 实体关系图 — graph_hybrid 模式 JIT 子图来源
+# node: id, type(character|location|faction|item), label, canon_ref
+# edge: from, to, type(relation|located|owns|enemy), label
+
+nodes: []
+edges: []

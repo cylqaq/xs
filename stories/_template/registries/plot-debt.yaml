@@ -1,0 +1,9 @@
+# 情节债务仪表（聚合视图，不重复存正文）
+summary:
+  open_foreshadowing: 0
+  open_hooks: 0
+  open_threads: 0
+  overdue_micro_payoffs: 0
+  debt_ratio: 0.0  # resolved / total planted
+
+items: []

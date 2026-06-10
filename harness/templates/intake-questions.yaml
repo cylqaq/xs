@@ -1,0 +1,49 @@
+# seed-intake 题库 — forge intake questions 读取；Agent 每轮最多问 3 题
+# 不依赖 Cursor OS；对话追问 + 答案写入 seed/*.yaml
+
+author_intent:
+  section: 核心幻想
+  min_chars: 24
+  prompt: 用 2–4 句话描述你的核心幻想：读者为什么要追这本书？最想看到的情绪或画面是什么？
+
+layers:
+  l1:
+    label: Layer 1 核心定位
+    fields:
+      genre:
+        min_chars: 2
+        prompt: 这本书的题材与基调是什么？（例：都市修仙、悬疑推理、甜宠、末世）
+      protagonist:
+        min_chars: 8
+        prompt: 主角是谁？请写清其外在身份、核心欲望、以及一个致命弱点或秘密。
+      core_conflict:
+        min_chars: 8
+        prompt: 故事的核心矛盾是什么？谁与谁（或什么）在对抗？赌注是什么？
+
+  l2:
+    label: Layer 2 深度定制
+    file: seed/layer2-customize.yaml
+    fields:
+      world_direction:
+        min_chars: 6
+        prompt: 世界观方向：时代/地理/社会结构的大致轮廓？与同类作品有何不同？
+      pov_tone:
+        min_chars: 4
+        prompt: 叙述视角与基调？（例：第三人称限知、冷峻、轻松、黑暗）
+      theme:
+        min_chars: 4
+        prompt: 你想探讨的主题或母题是什么？（一句即可）
+      audience:
+        min_chars: 2
+        prompt: 目标读者是谁？（例：男频爽文、女性向、轻小说读者）
+      target_chapters:
+        type: number
+        min: 10
+        prompt: 计划写多少章？（建议先定 40–120 的可连载体量）
+
+  l3:
+    label: Layer 3 书名
+    fields:
+      title:
+        min_chars: 2
+        prompt: 书名或暂定书名是什么？（可先用工作标题，后续可改）

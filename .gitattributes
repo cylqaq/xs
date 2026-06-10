@@ -1,0 +1,17 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Explicit text
+*.md text diff=markdown
+*.yaml text
+*.yml text
+*.json text
+*.mjs text linguist-language=JavaScript
+*.js text linguist-language=JavaScript
+
+# Binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary

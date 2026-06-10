@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "novelId": "my-novel",
+  "totalChapters": 80,
+  "minWordsPerChapter": 3000,
+  "writingMode": "serial",
+  "status": "planning",
+  "chapters": []
+}

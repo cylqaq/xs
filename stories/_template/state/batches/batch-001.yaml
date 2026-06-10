@@ -1,0 +1,5 @@
+id: batch-001
+chapters: [1, 2]
+status: planned
+beats_ready: false
+notes: 首批最多 2 章框架，由 batch-planner 更新

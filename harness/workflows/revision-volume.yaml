@@ -1,0 +1,42 @@
+workflow: revision-volume
+description: 卷级 chief-editor → style-guardian → patch-refiner → rule-reviewer 多智能体精修
+
+steps:
+  - id: chief-edit
+    skill: chief-editor
+    manifest: revision-volume
+    isolation: true
+    cli_preflight:
+      - manifest revision-volume --chapter {chapter}
+    requires_files:
+      - state/checkpoints/revision-vol-01.yaml
+    handoff_writes:
+      - state/working/handoffs/revision-chief-editor.yaml
+
+  - id: style
+    skill: style-guardian
+    isolation: true
+    reads_handoff:
+      - chief-editor
+    handoff_writes:
+      - state/working/handoffs/revision-style-guardian.yaml
+
+  - id: patch
+    skill: patch-refiner
+    isolation: true
+    reads_handoff:
+      - style-guardian
+    cli_postflight:
+      - validate --task revision-volume --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/revision-patch-refiner.yaml
+
+  - id: re-review
+    skill: rule-reviewer
+    isolation: true
+    reads_handoff:
+      - patch-refiner
+    cli_postflight:
+      - review --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/revision-rule-reviewer.yaml

@@ -1,0 +1,11 @@
+# 叙事钩子登记册
+# status: open | partially_addressed | closed | merged_into
+
+items:
+  - id: hk-001
+    type: chapter-end
+    opened_chapter: 1
+    closed_chapter: null
+    status: open
+    summary: 章末强悬念断点
+    must_resolve_by: 5

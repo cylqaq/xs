@@ -1,0 +1,22 @@
+# 元数据重建链 — canon-rebuilder 对齐 Canon/登记册（禁止改 manuscripts）
+workflow: rebuild-chain
+description: metadata drift → canon-rebuilder → 恢复连载
+
+steps:
+  - id: rebuild
+    skill: canon-rebuilder
+    manifest: rebuild-canon
+    isolation: true
+    cli_preflight:
+      - manifest rebuild-canon --chapter {chapter}
+    cli_postflight:
+      - validate --task rebuild-canon --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/rebuild-canon-rebuilder.yaml
+
+  - id: resume
+    skill: novel-orchestrator
+    isolation: true
+    reads_handoff:
+      - canon-rebuilder
+    note: 清除 sub_phase rebuild-canon，forge next 回到 chapter-cycle

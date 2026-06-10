@@ -1,0 +1,12 @@
+{
+  "defaultMinWordsPerChapter": 3000,
+  "beatsCoverageRatio": 0.7,
+  "openingHookMaxChapter": 3,
+  "dialogueMinSnippets": 2,
+  "dialogueMinRatio": 0.08,
+  "coolPointKeywordMinHits": {
+    "xuanhuan": 1,
+    "general": 1,
+    "default": 0
+  }
+}

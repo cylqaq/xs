@@ -1,0 +1,51 @@
+# 评审失败后的多智能体补丁链 — 按 action_items.delegate_skill 路由
+workflow: patch-cycle
+description: review FAIL → delegate_skill → continuity → re-review（≤3 轮）
+
+steps:
+  - id: route-patch
+    skill: novel-orchestrator
+    isolation: true
+    reads_from:
+      - state/reviews/ch-{chapter_padded}.json
+    note: 读 action_items[].delegate_skill，勿读评审全文
+
+  - id: patch-refiner
+    skill: patch-refiner
+    isolation: true
+    when_delegate: patch-refiner
+    requires_files:
+      - state/revisions/ch-{chapter_padded}-r{review_round}/patch.md
+      - state/revisions/ch-{chapter_padded}-r{review_round}/original.md
+      - state/revisions/ch-{chapter_padded}-r{review_round}/diff.md
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-patch-refiner.yaml
+
+  - id: expand
+    skill: chapter-expander
+    isolation: true
+    when_delegate: chapter-expander
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-chapter-expander.yaml
+
+  - id: dialogue
+    skill: dialogue-craftsman
+    isolation: true
+    when_delegate: dialogue-craftsman
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-dialogue-craftsman.yaml
+
+  - id: continuity-fix
+    skill: continuity-warden
+    isolation: true
+    when_delegate: continuity-warden
+    cli_postflight:
+      - validate
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-continuity-warden-fix.yaml
+
+  - id: re-review
+    skill: rule-reviewer
+    isolation: true
+    cli_postflight:
+      - review --chapter {chapter}

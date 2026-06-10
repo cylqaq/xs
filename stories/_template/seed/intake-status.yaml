@@ -1,0 +1,9 @@
+# seed-intake 进度（由 forge intake status 同步；readiness=ready 前禁止离开 ideation）
+readiness: collecting
+current_layer: 1
+layers:
+  author_intent: pending
+  l1: pending
+  l2: pending
+  l3: pending
+last_updated: null

@@ -1,0 +1,8 @@
+# chief-editor 卷级精修任务清单（复制为 revision-vol-01.yaml）
+volume: 1
+chapters: []
+tasks: []
+# - id: rev-001
+#   chapter: 3
+#   delegate_skill: patch-refiner
+#   summary: 对齐伏笔 fs-002

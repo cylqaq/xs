@@ -1,0 +1,7 @@
+mode: auto  # auto | graph_hybrid | bm25_fallback
+last_selected: auto
+overrides:
+  - when: multi_character_scene
+    mode: graph_hybrid
+  - when: graph_empty_or_stale
+    mode: bm25_fallback

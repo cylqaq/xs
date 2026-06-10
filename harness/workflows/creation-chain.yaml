@@ -1,0 +1,129 @@
+# 开书创建链 — 每 Skill 隔离会话，handoff 后方可进入下一步
+workflow: creation-chain
+description: ideation → worldbuilding → characters → outline（5 Skill）→ drafting 入口
+
+steps:
+  - id: orchestrate-open
+    skill: novel-orchestrator
+    manifest: bootstrap
+    isolation: true
+    cli_preflight:
+      - manifest bootstrap
+
+  - id: seed-intake
+    skill: seed-intake
+    manifest: bootstrap
+    isolation: true
+    reads_handoff:
+      - novel-orchestrator
+    cli_preflight:
+      - intake status
+      - intake questions
+    cli_postflight:
+      - intake check
+    handoff_writes:
+      - state/working/handoffs/creation-seed-intake.yaml
+
+  - id: bootstrap
+    skill: novel-bootstrap
+    manifest: bootstrap
+    isolation: true
+    reads_handoff:
+      - seed-intake
+    gate: intake_ready
+    requires_files:
+      - canon/background/premise.md
+    cli_preflight:
+      - intake check
+    cli_postflight:
+      - validate --task bootstrap
+    handoff_writes:
+      - state/working/handoffs/creation-novel-bootstrap.yaml
+
+  - id: world
+    skill: world-architect
+    manifest: worldbuilding
+    isolation: true
+    reads_handoff:
+      - novel-bootstrap
+    requires_files:
+      - canon/world/overview.md
+      - canon/world/rules.md
+    cli_postflight:
+      - validate --task worldbuilding
+    handoff_writes:
+      - state/working/handoffs/creation-world-architect.yaml
+
+  - id: characters
+    skill: character-forge
+    manifest: characters
+    isolation: true
+    reads_handoff:
+      - world-architect
+    requires_files:
+      - canon/characters/index.yaml
+    cli_postflight:
+      - validate --task characters
+    handoff_writes:
+      - state/working/handoffs/creation-character-forge.yaml
+
+  - id: plot-outline
+    skill: plot-architect
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - character-forge
+    requires_files:
+      - canon/plot/outline.md
+      - canon/plot/arcs.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-plot-architect.yaml
+
+  - id: foreshadow
+    skill: foreshadow-engineer
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - plot-architect
+    requires_files:
+      - registries/foreshadowing.yaml
+      - registries/chekhov-guns.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-foreshadow-engineer.yaml
+
+  - id: hooks
+    skill: hook-manager
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - foreshadow-engineer
+    requires_files:
+      - registries/hooks.yaml
+      - registries/open-threads.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-hook-manager.yaml
+
+  - id: batch-planner
+    skill: batch-planner
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - hook-manager
+    requires_files:
+      - canon/plot/beats/ch-{chapter_padded}.md
+      - state/batches/batch-001.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-batch-planner.yaml
+
+  - id: outline-retention
+    skill: retention-analyst
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - batch-planner
+    requires_files:
+      - registries/plot-debt.yaml
+    cli_postflight:
+      - validate --task outline-batch --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/creation-retention-analyst.yaml

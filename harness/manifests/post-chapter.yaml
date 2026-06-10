@@ -1,0 +1,33 @@
+task: post-chapter
+description: 章后记忆维护 JIT 清单（continuity-warden + retention-analyst）
+
+before:
+  - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+  - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/canon/timeline/master.yaml"
+  - "{novel_root}/registries/foreshadowing.yaml"
+  - "{novel_root}/registries/hooks.yaml"
+  - "{novel_root}/registries/open-threads.yaml"
+  - "{novel_root}/registries/micro-payoffs.yaml"
+  - "{novel_root}/registries/plot-debt.yaml"
+  - "{novel_root}/registries/chekhov-guns.yaml"
+  - "{novel_root}/registries/cool-points.yaml"
+
+skills:
+  - continuity-warden
+  - retention-analyst
+  - rule-reviewer
+
+during_write:
+  - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
+  - "{novel_root}/state/memory/summary-rolling.md"
+  - "{novel_root}/registries/continuity-log.yaml"
+  - "{novel_root}/state/retention/ch-{chapter_padded}.yaml"
+
+after_must_update:
+  - "{novel_root}/novel.yaml"
+  - "{novel_root}/state/phase.yaml"
+
+validators:
+  - continuity
+  - registry-consistency
