@@ -23,6 +23,8 @@
 | 字段 | 含义 |
 |------|------|
 | `when_dialogue: true` | beats 含对话关键词 |
+| `reads_handoff_when_dialogue` | 仅当 `when_dialogue` 步激活时要求的 handoff（如 continuity ← dialogue） |
+| `skip_when: no_persona_shift_triggers` | 本章无 persona 触发章时自动写 skip handoff |
 | `when_delegate: <skill>` | patch-cycle 路由 |
 | `gate: draft_ready` | continuity 前 production (+ 可选 dialogue) handoff |
 | `requires_review_pass: true` | advance 前 review PASS |

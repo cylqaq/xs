@@ -1,4 +1,4 @@
-# 框架现状（2026-06-10 · 第四轮 · 可正式生成）
+# 框架现状（2026-06-11 · 第五轮 · post-chapter 硬化）
 
 北极星：**用户 seed → 多智能体 Skill 链（隔离会话 + handoff）→ Canon 防失忆 → 规则评审 → 可恢复续写**。
 
@@ -10,7 +10,7 @@
 
 | 层 | 状态 | 路径 |
 |----|------|------|
-| 5 工作流 + handoff 硬化 | ✅ | `harness/workflows/` |
+| 5 工作流 + handoff 硬化 | ✅ | advance handoff · patch-cycle 脚手架 · session-collect 门禁 · graph 漂移 WARN |
 | 23 Skill（已对齐 workflow） | ✅ | `skills/roles/` |
 | 10 manifest + workflow validate | ✅ | `forge workflow validate` |
 | 11 维 review + 外置阈值 | ✅ | `harness/review/config.json` |
@@ -35,6 +35,7 @@
 | `forge handoff complete` | 强制 postflight + 产物 |
 | `forge phase advance` | 须 review PASS + handoff 齐全 |
 | `forge workflow validate` | manifest 契约 |
+| `forge relay refresh` | 再生 `state/working/session-relay.md` 新会话接力 |
 
 ## 文档入口
 

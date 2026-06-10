@@ -52,10 +52,11 @@ flowchart TB
 | 1 | route-context | context-router | manifest + context |
 | 2 | draft | chapter-production | 手稿存在 |
 | 3 | dialogue | dialogue-craftsman | 条件步 |
-| 4 | continuity | continuity-warden | compact + validate |
-| 5 | retention | retention-analyst | retention yaml |
-| 6 | review | rule-reviewer | **review --chapter N** |
-| 7 | advance | novel-orchestrator | requires_review_pass |
+| 4 | continuity | continuity-warden | compact --chapter N + validate |
+| 5 | persona-evolution | persona-evolution-warden | auto-skip 若无 trigger_chapter |
+| 6 | retention | retention-analyst | retention yaml + cool-points delivered |
+| 7 | review | rule-reviewer | **review --chapter N** |
+| 8 | advance | novel-orchestrator | requires_review_pass |
 
 **禁止**：跳过 handoff 链直接 `phase advance`（CLI 已拦截）。
 

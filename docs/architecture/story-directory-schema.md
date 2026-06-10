@@ -48,11 +48,17 @@ stories/{novel-id}/
 │   ├── continuity-log.yaml
 │   ├── appearance-log.yaml    # 出场章记录
 │   └── persona-shifts.yaml    # 性格转变 planned/active
+│   ├── relationship-tracking.yaml  # 信任/情感 delta（可选）
+│   ├── dialogue-promises.yaml
+│   ├── motifs.yaml
+│   └── callbacks.yaml
 ├── state/
 │   ├── phase.yaml             # 含 review_round / blocked
 │   ├── context-mode.yaml      # auto | graph_hybrid | bm25_fallback
 │   ├── batches/               # 分批续写 batch-*.yaml
 │   ├── working/
+│   │   ├── session-relay.md      # 新会话接力（forge relay refresh）
+│   │   └── session-collect.yaml  # 章后待作者确认（retention-analyst）
 │   ├── memory/
 │   │   ├── summary-rolling.md
 │   │   ├── chapter-summaries/

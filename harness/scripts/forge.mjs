@@ -56,6 +56,14 @@ import {
   gateLeaveIdeation,
   gateDraftingEntry,
   loadReviewConfig,
+  writeSessionRelay,
+  resolveNovelRootFromArgs,
+  effectiveDraftChapter,
+  extractMarkdownSection,
+  isSummaryRollingPlaceholderSection,
+  assessSessionCollect,
+  scaffoldRevisionRound,
+  syncReadOrderOnAdvance,
 } from './forge-lib.mjs';
 import {
   WORKFLOW_NAMES,
@@ -67,6 +75,7 @@ import {
   loadWorkflow,
   validateChapterWorkflowHandoffs,
   validateWorkflowManifestSync,
+  writeAdvanceHandoff,
 } from './orchestrator-lib.mjs';
 
 const MANIFEST_TASKS = [
@@ -82,13 +91,14 @@ const MANIFEST_TASKS = [
 
 function cmdManifest(args) {
   const task = args[0];
-  const novelRoot = args[1];
+  const novelRoot = resolveNovelRootFromArgs(args, { skipTokens: MANIFEST_TASKS });
   let chapter = null;
   const chIdx = args.indexOf('--chapter');
   if (chIdx !== -1) chapter = parseInt(args[chIdx + 1], 10);
 
   if (!task || !novelRoot) {
     console.log('Usage: forge manifest <task> <stories/novel-id> [--chapter N]');
+    console.log('       (novel path may appear before or after --chapter)');
     console.log(`Tasks: ${MANIFEST_TASKS.join(' | ')}`);
     process.exit(1);
   }
@@ -243,31 +253,67 @@ function cmdValidate(args) {
 }
 
 function cmdCompact(args) {
-  const novelRoot = args[0];
+  const novelRoot = resolveNovelRootFromArgs(args);
+  const chIdx = args.indexOf('--chapter');
+  const chapterOverride = chIdx !== -1 ? parseInt(args[chIdx + 1], 10) : null;
   if (!novelRoot) {
-    console.log('Usage: forge compact <stories/novel-id>');
+    console.log('Usage: forge compact <stories/novel-id> [--chapter N]');
     process.exit(1);
   }
   const novelAbs = path.resolve(ROOT, novelRoot);
-  const { authoritative: lastCompleted } = getLastCompleted(novelAbs);
+  const effectiveChapter = effectiveDraftChapter(novelAbs, chapterOverride);
   const premise = loadText(path.join(novelAbs, 'canon/background/premise.md')) || '';
-  const premiseShort = premise.replace(/#+\s/g, '').trim().slice(0, 200);
+  const premiseShort = premise.replace(/#+\s/g, '').trim().slice(0, 500);
 
   const summaries = [];
-  for (let ch = Math.max(1, lastCompleted - 2); ch <= lastCompleted; ch++) {
+  for (let ch = Math.max(1, effectiveChapter - 2); ch <= effectiveChapter; ch++) {
     const p = path.join(novelAbs, `state/memory/chapter-summaries/ch-${padChapter(ch)}.yaml`);
     const t = loadText(p);
     if (t) summaries.push({ ch, ...parseSummaryYaml(t) });
   }
 
   const fsContent = loadText(path.join(novelAbs, 'registries/foreshadowing.yaml')) || '';
-  const openFs = [...fsContent.matchAll(/id:\s*(\S+)[\s\S]*?status:\s*(planned|planted|hinted)/g)]
+  const openFs = [...fsContent.matchAll(/id:\s*(\S+)[\s\S]*?status:\s*(planted|hinted)/g)]
     .map((m) => m[1])
     .slice(0, 10);
 
+  const outPath = path.join(novelAbs, 'state/memory/summary-rolling.md');
+  const existingBody = loadText(outPath) || '';
+  const existingMain = extractMarkdownSection(existingBody, '主线进展');
+  const existingArcs = extractMarkdownSection(existingBody, '活跃故事弧');
+  const existingRecent = extractMarkdownSection(existingBody, '近章摘要');
+  const existingOpen = extractMarkdownSection(existingBody, '开放登记');
+
+  const mainProgress = isSummaryRollingPlaceholderSection(existingMain)
+    ? '（根据近章摘要合并 — 请 continuity-warden 补全）'
+    : existingMain;
+
+  const activeArcs = isSummaryRollingPlaceholderSection(existingArcs)
+    ? '见 canon/plot/arcs.yaml'
+    : existingArcs;
+
+  const recentFromYaml = summaries.length
+    ? summaries
+        .map(
+          (s) =>
+            `### 第 ${s.ch} 章${s.title ? `「${s.title}」` : ''}\n${s.events.slice(0, 5).join('；') || '（无 events）'}`
+        )
+        .join('\n\n')
+    : '';
+
+  const recentSection = recentFromYaml
+    ? recentFromYaml
+    : isSummaryRollingPlaceholderSection(existingRecent)
+      ? '（尚无章节）'
+      : existingRecent;
+
+  const openSection = isSummaryRollingPlaceholderSection(existingOpen)
+    ? `- 伏笔 planted/open: ${openFs.join(', ') || '无'}\n- 钩子: 见 registries/hooks.yaml\n- 情节债务: 见 registries/plot-debt.yaml`
+    : existingOpen;
+
   const out = `# 滚动摘要
 
-> 由 \`forge compact\` 生成于 ${new Date().toISOString().slice(0, 10)}。章后请 continuity-warden 润色。
+> 由 \`forge compact\` 生成于 ${new Date().toISOString().slice(0, 10)}（effective_chapter: ${effectiveChapter}）。与 canon 冲突时以 canon 为准。
 
 ## 全书前提
 
@@ -275,24 +321,21 @@ ${premiseShort || '（待填写 premise）'}
 
 ## 主线进展
 
-（根据近章摘要合并 — 请 continuity-warden 补全）
+${mainProgress}
 
 ## 活跃故事弧
 
-见 canon/plot/arcs.yaml
+${activeArcs}
 
 ## 近章摘要
 
-${summaries.length ? summaries.map((s) => `### 第 ${s.ch} 章${s.title ? `：${s.title}` : ''}\n${s.events.slice(0, 3).join('；') || '（无 events）'}`).join('\n\n') : '（尚无章节）'}
+${recentSection}
 
 ## 开放登记
 
-- 伏笔 open: ${openFs.join(', ') || '无'}
-- 钩子: 见 registries/hooks.yaml
-- 情节债务: 见 registries/plot-debt.yaml
+${openSection}
 `;
 
-  const outPath = path.join(novelAbs, 'state/memory/summary-rolling.md');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, out, 'utf8');
   console.log(`Wrote ${outPath}`);
@@ -346,8 +389,12 @@ function cmdReview(args) {
   } else {
     const reviewCfg = loadReviewConfig();
     if (chapter <= reviewCfg.openingHookMaxChapter) {
-      const body = text.replace(/^---[\s\S]*?---\n?/, '');
-      const firstPara = body.split(/\n\n/)[0] || '';
+      const body = text.replace(/^---[\s\S]*?---\r?\n?/, '');
+      const firstPara =
+        body
+          .split(/\r?\n\r?\n/)
+          .map((s) => s.trim())
+          .find((s) => s.length > 0) || '';
       const hookWords = /突然|却|竟|没想到|危险|死|血|神秘|破碎|逆转|奔|闯|醒/;
       const pass = firstPara.length >= 20 && firstPara.length <= 800 && hookWords.test(firstPara);
       results.dimensions.push({ id: 'opening_hook', pass, msg: pass ? 'ok' : '首段需动作/异常且长度适中' });
@@ -449,6 +496,9 @@ function cmdReview(args) {
   results.pass = results.dimensions.every((d) => d.pass);
   updateReviewRound(novelAbs, results.pass);
   results.review_round = loadPhaseState(novelAbs).review_round;
+  if (!results.pass) {
+    scaffoldRevisionRound(novelAbs, chapter, results.review_round || 1);
+  }
 
   const reviewDir = path.join(novelAbs, 'state/reviews');
   fs.mkdirSync(reviewDir, { recursive: true });
@@ -462,6 +512,11 @@ function cmdReview(args) {
     for (const a of results.action_items) {
       console.log(`- [${a.delegate_skill}] ${a.message}${a.hint ? ` — ${a.hint}` : ''}`);
     }
+  }
+  if (!results.pass) {
+    const delegate = results.action_items[0]?.delegate_skill || 'patch-refiner';
+    console.log(`\n→ review FAIL：运行 forge next 进入 patch-cycle，首步委派 @${delegate}`);
+    console.log(`  revision scaffold: state/revisions/ch-${padded}-r${results.review_round}/`);
   }
   if (!results.pass && loadPhaseState(novelAbs).blocked) {
     console.log('\n⚠ phase.yaml blocked — 交 novel-orchestrator 或人工');
@@ -494,6 +549,27 @@ function cmdNext(args) {
   const plan = resolveNextStep(novelAbs, novelRoot, chapter);
   if (asJson) console.log(JSON.stringify(plan, null, 2));
   else console.log(formatNextPlan(plan));
+}
+
+function cmdRelay(args) {
+  const sub = args[0];
+  const novelRoot = args[1];
+  if (sub !== 'refresh' || !novelRoot) {
+    console.log('Usage: forge relay refresh <stories/novel-id|absolute-path>');
+    process.exit(1);
+  }
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  if (!fs.existsSync(path.join(novelAbs, 'novel.yaml'))) {
+    console.error(`Not a novel root: ${novelAbs}`);
+    process.exit(1);
+  }
+  const plan = resolveNextStep(novelAbs, novelRoot, loadPhaseState(novelAbs).current_chapter || 1);
+  const sk = plan?.skill_focus || plan?.skill;
+  const nextHint = sk
+    ? `@${sk} · ${plan.manifest || ''} · ch ${plan.chapter || 1}\n${plan.on_complete || ''}`
+    : 'forge next';
+  const relayPath = writeSessionRelay(novelAbs, novelRoot, nextHint);
+  console.log(`# Session relay refreshed\n\n${relayPath}`);
 }
 
 function cmdRun(args) {
@@ -552,7 +628,7 @@ function cmdWorkflow(args) {
 function cmdHandoff(args) {
   const sub = args[0];
   if (sub === 'complete') {
-    const novelRoot = args[1];
+    const novelRoot = resolveNovelRootFromArgs(args, { skipTokens: ['complete'] });
     const sIdx = args.indexOf('--skill');
     const skill = sIdx !== -1 ? args[sIdx + 1] : null;
     const chIdx = args.indexOf('--chapter');
@@ -782,7 +858,8 @@ function cmdPhase(args) {
   if (!sub || !novelRoot) {
     console.log(`Usage:
   forge phase sync <stories/novel-id>           Mirror phase.yaml → novel.yaml
-  forge phase advance <stories/novel-id> --chapter N [--force --reason "audit text"]
+  forge phase advance <stories/novel-id> --chapter N [--ack-session-collect] [--force --reason "audit text"]
+  forge phase backfill-advance <stories/novel-id> [--chapter N]   Retroactive novel-orchestrator handoff
   forge phase set <stories/novel-id> --field X --value Y`);
     process.exit(1);
   }
@@ -821,6 +898,18 @@ function cmdPhase(args) {
     setYamlField(phasePath, field, value);
     syncNovelFromPhase(novelAbs, loadPhaseState(novelAbs));
     console.log(`Set phase.yaml ${field} = ${value}`);
+    return;
+  }
+
+  if (sub === 'backfill-advance') {
+    const chIdx = args.indexOf('--chapter');
+    const chapter = chIdx !== -1 ? parseInt(args[chIdx + 1], 10) : loadPhaseState(novelAbs).last_completed_chapter;
+    if (!chapter) {
+      console.error('Need --chapter N or last_completed_chapter > 0');
+      process.exit(1);
+    }
+    const p = writeAdvanceHandoff(novelAbs, chapter);
+    console.log(p ? `✓ Backfill @novel-orchestrator handoff → ${p.replace(/\\/g, '/')}` : 'No advance step');
     return;
   }
 
@@ -876,6 +965,16 @@ function cmdPhase(args) {
     }
 
     if (!force) {
+      const collect = assessSessionCollect(novelAbs);
+      if (!collect.ok && !args.includes('--ack-session-collect')) {
+        console.error(
+          `Unanswered high-priority session-collect: ${collect.unackedHigh.join(', ')}`
+        );
+        console.error(
+          'Set author_ack: true on each question in session-collect.yaml, or pass --ack-session-collect'
+        );
+        process.exit(1);
+      }
       const hv = validateChapterWorkflowHandoffs(novelAbs, chapter, 'chapter-cycle');
       if (!hv.ok) {
         if (hv.missing.length) {
@@ -905,7 +1004,16 @@ function cmdPhase(args) {
       setYamlField(phasePath, 'sub_phase', 'chapter-draft');
     }
     syncNovelFromPhase(novelAbs, loadPhaseState(novelAbs));
+    syncReadOrderOnAdvance(novelAbs, chapter);
+    const advanceHandoff = writeAdvanceHandoff(novelAbs, chapter);
+    const relayPath = writeSessionRelay(
+      novelAbs,
+      novelRoot,
+      `章 ${chapter} 已完成（含 @novel-orchestrator handoff）→ 下一章 ${chapter + 1}。运行 forge next 激活 Skill。`
+    );
     console.log(`Advanced: last_completed_chapter=${chapter}, current_chapter=${chapter + 1}`);
+    if (advanceHandoff) console.log(`Handoff: ${advanceHandoff.replace(/\\/g, '/')}`);
+    console.log(`Relay: ${relayPath}`);
     return;
   }
 
@@ -922,7 +1030,7 @@ function validateChapterReady(novelAbs, chapter) {
   if (!fs.existsSync(path.join(novelAbs, `state/memory/chapter-summaries/ch-${padded}.yaml`)))
     errors.push(`missing chapter-summary ch-${padded}`);
   if (!fs.existsSync(path.join(novelAbs, `state/retention/ch-${padded}.yaml`)))
-    warnings.push(`missing retention ch-${padded}`);
+    errors.push(`missing retention ch-${padded} (retention-analyst)`);
   return { ok: errors.length === 0, errors, warnings };
 }
 
@@ -965,13 +1073,16 @@ switch (command) {
   case 'workflow':
     cmdWorkflow(args);
     break;
+  case 'relay':
+    cmdRelay(args);
+    break;
   default:
     console.log(`Novel Forge CLI
 
 Commands:
   manifest <task> <stories/id> [--chapter N]
   validate <stories/id> [--strict] [--task TASK] [--chapter N]
-  compact <stories/id>
+  compact <stories/id> [--chapter N]
   review <stories/id> --chapter N
   context <stories/id> [--chapter N]
   context-index <stories/id>
@@ -981,5 +1092,6 @@ Commands:
   run <stories/id> [--workflow auto|...]       Full workflow playbook → run-plan.json
   handoff complete|status <stories/id>         Skill isolation handoff protocol
   workflow validate                            Check workflow steps vs manifest skills
+  relay refresh <stories/id>                   Regenerate state/working/session-relay.md
 `);
 }

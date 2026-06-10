@@ -14,7 +14,7 @@ ideation → worldbuilding → outlining → drafting ⇄ revision → publish
 | 世界观 | worldbuilding | `worldbuilding` | world-architect |
 | 人物 | outlining · `sub_phase: characters` | `characters` | character-forge → cast-network-weaver → persona-voice-binder |
 | 大纲/批次 | outlining | `outline-batch` | plot-architect → foreshadow-engineer → hook-manager → batch-planner → retention-analyst |
-| 连载 | drafting | `chapter-draft` / `post-chapter` | context-router → chapter-production → [dialogue-craftsman] → continuity-warden → retention-analyst → rule-reviewer → advance |
+| 连载 | drafting | `chapter-draft` / `post-chapter` | context-router → chapter-production → [dialogue-craftsman] → continuity-warden → persona-evolution-warden → retention-analyst → rule-reviewer → advance |
 | 卷级精修 | revision | `revision-volume` | chief-editor → style-guardian → patch-refiner → rule-reviewer |
 | 元数据重建 | drafting · `sub_phase: rebuild-canon` | `rebuild-canon` | canon-rebuilder → novel-orchestrator（`rebuild-chain`） |
 | 发布 | publish | — | 导出脚本（待建） |
@@ -30,11 +30,12 @@ ideation → worldbuilding → outlining → drafting ⇄ revision → publish
 ```
 BEFORE  manifest chapter-draft + forge context
 DURING  chapter-production → [dialogue-craftsman 当 beats 含对话]（workflow `when_dialogue`）
-AFTER   manifest post-chapter → continuity-warden → retention-analyst
-GATE    rule-reviewer handoff（cli_postflight: review）
+AFTER   manifest post-chapter → continuity-warden → persona-evolution-warden → retention-analyst
+GATE    rule-reviewer handoff（cli_postflight: review；FAIL 拒绝 handoff）
         ├─ PASS → 全章 handoff 齐全 → forge phase advance --chapter N
-        └─ FAIL → patch-cycle（action_items.delegate_skill）
-              → continuity-warden? → rule-reviewer re-review（review_round++，>3 → blocked）
+        │         → 写 novel-orchestrator handoff · sync read-order · session-collect 高优门禁
+        └─ FAIL → patch-cycle（review 自动脚手架 revisions/；forge next 路由 delegate_skill）
+              → re-review（review_round++，>3 → blocked）
 ```
 
 ## review 失败路由

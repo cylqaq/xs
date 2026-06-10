@@ -10,6 +10,11 @@
 |------|------|----------|
 | 能力缺陷矩阵 | `skills/guides/ability-defect-matrix.md` | world → character → foreshadow → hook → plot |
 | 人物人格链 | `skills/guides/character-persona-chain.md` | character-forge → cast-network → persona-voice → 连载 evolution |
+| 灵魂卡字段 | `skills/guides/character-soul-card-schema.md` | character-forge |
+| 会话生产约束 | `skills/guides/session-production-limits.md` | production / batch / orchestrator |
+| 会话接力 | `skills/guides/session-relay-protocol.md` | relay refresh · retention session-collect |
+| 新会话接入 | `skills/guides/new-session-onboarding.md` | 人类 + 新 LLM 必读 |
+| 登记册扩展字段 | `skills/guides/registry-field-extensions.md` | foreshadow / hook / continuity |
 
 ## 编排层
 

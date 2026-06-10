@@ -24,9 +24,10 @@ description: >-
 
 1. 读 `manuscripts/chapters/ch-{NNN}.md` + `chapter-summaries`
 2. 对照 `persona-shifts` 中 `trigger_chapter == N` 的项
-3. 若手稿已体现转变 → 标 `active`，写 `active_from_ch: N`
-4. 若 beats 要求转变但手稿未体现 → handoff 标 `blocked` 或退回 production
-5. 更新 `cast-roster` 中角色的 `persona_state` 字段（可选摘要）
+3. **若无触发项**：`forge next` / `handoff complete` 可 **auto-skip**（workflow `skip_when: no_persona_shift_triggers`）
+4. 若手稿已体现转变 → 标 `active`，写 `active_from_ch: N`
+5. 若 beats 要求转变但手稿未体现 → handoff 标 `blocked` 或退回 production
+6. 更新 `cast-roster` 中角色的 `persona_state` 字段（可选摘要）
 
 ## 规则
 

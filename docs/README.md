@@ -22,7 +22,7 @@
 
 ## 每章 Skill 链（drafting）
 
-`context-router` → `chapter-production` → [`dialogue-craftsman` 条件] → `continuity-warden` → `retention-analyst` → `rule-reviewer` → `phase advance`
+`context-router` → `chapter-production` → [`dialogue-craftsman` 条件] → `continuity-warden` → `persona-evolution-warden` → `retention-analyst` → `rule-reviewer` → `phase advance`
 
 开书：`creation-chain` 10 步（见 `skills/README.md`）
 
@@ -38,7 +38,7 @@
 | 伏笔/钩子 | `@foreshadow-engineer` `@hook-manager` |
 | 分批 beats | `@batch-planner` |
 | 写章 | `@context-router` → `@chapter-production` |
-| 章后 | `@continuity-warden` → `@retention-analyst` |
+| 章后 | `@continuity-warden` → `@persona-evolution-warden` → `@retention-analyst` |
 | 评审 | `@rule-reviewer` |
 | 修补 | `@patch-refiner` 等（patch-cycle） |
 

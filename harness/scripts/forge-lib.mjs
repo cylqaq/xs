@@ -125,6 +125,67 @@ export function getLastCompleted(novelAbs) {
   return { phase, novelLast, authoritative: phase.last_completed_chapter };
 }
 
+const CLI_FLAGS_WITH_VALUE = new Set([
+  '--chapter',
+  '--workflow',
+  '--skill',
+  '--notes',
+  '--task',
+  '--reason',
+  '--force',
+]);
+
+/** Resolve novel root from argv; tolerates flags before or after path. */
+export function resolveNovelRootFromArgs(args, opts = {}) {
+  const skip = new Set(opts.skipTokens || []);
+  let i = opts.startIndex ?? 0;
+  const candidates = [];
+  while (i < args.length) {
+    const a = args[i];
+    if (a.startsWith('--')) {
+      i += CLI_FLAGS_WITH_VALUE.has(a) ? 2 : 1;
+      continue;
+    }
+    if (!skip.has(a)) candidates.push(a);
+    i += 1;
+  }
+  return (
+    candidates.find((p) => p.includes('/') || p.includes('\\')) ||
+    candidates[candidates.length - 1] ||
+    null
+  );
+}
+
+/** Drafting chapter for memory compact: max(last_completed, current_chapter, override). */
+export function effectiveDraftChapter(novelAbs, chapterOverride = null) {
+  const phase = loadPhaseState(novelAbs);
+  const { authoritative: lastCompleted } = getLastCompleted(novelAbs);
+  return Math.max(lastCompleted, phase.current_chapter || 0, chapterOverride || 0, 1);
+}
+
+/** Count persona-shifts scheduled to trigger on chapter N. */
+export function personaShiftTriggersForChapter(novelAbs, chapter) {
+  const t = loadText(path.join(novelAbs, 'registries/persona-shifts.yaml')) || '';
+  let count = 0;
+  for (const m of t.matchAll(/trigger_chapter:\s*(\d+)/g)) {
+    if (parseInt(m[1], 10) === chapter) count += 1;
+  }
+  return count;
+}
+
+export function extractMarkdownSection(body, title) {
+  const re = new RegExp(`## ${title}\\r?\\n\\r?\\n([\\s\\S]*?)(?=\\r?\\n## |$)`);
+  const m = body.match(re);
+  return m ? m[1].trim() : '';
+}
+
+export function isSummaryRollingPlaceholderSection(text) {
+  if (!text) return true;
+  return (
+    /请 continuity-warden 补全|（根据近章摘要合并|（尚无章节）|见 canon\/plot\/arcs\.yaml/.test(text)
+  );
+}
+
 export function resolveManifest(manifestName, novelRoot, chapter) {
   const manifestPath = path.join(ROOT, 'harness/manifests', `${manifestName}.yaml`);
   if (!fs.existsSync(manifestPath)) {
@@ -143,23 +204,80 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
       .replaceAll('{prev_chapter_padded}', prev);
 
   const lines = raw.split('\n');
-  const sections = { before: [], optional: [], during: [], after: [], validators: [], skills: [] };
+  const sections = {
+    before: [],
+    optional: [],
+    during: [],
+    after: [],
+    validators: [],
+    skills: [],
+    duringBySkill: {},
+  };
   let current = null;
+  let duringSkillKey = null;
+  const novelRootSlash = novelAbs.replace(/\\/g, '/');
+
+  const pushDuring = (absPath, skillKey = null) => {
+    const rel = absPath.startsWith(novelRootSlash)
+      ? absPath.slice(novelRootSlash.length + 1)
+      : absPath;
+    sections.during.push(absPath);
+    if (skillKey) {
+      if (!sections.duringBySkill[skillKey]) sections.duringBySkill[skillKey] = [];
+      sections.duringBySkill[skillKey].push(rel);
+    }
+  };
 
   for (const line of lines) {
-    if (line.startsWith('before:')) current = 'before';
-    else if (line.startsWith('optional_if_exists:')) current = 'optional';
-    else if (line.startsWith('during_write:')) current = 'during';
-    else if (line.startsWith('after_must_update:')) current = 'after';
-    else if (line.startsWith('validators:')) current = 'validators';
-    else if (line.startsWith('skills:')) current = 'skills';
-    else if (line.trim().startsWith('- ') && current) {
+    if (line.startsWith('before:')) {
+      current = 'before';
+      duringSkillKey = null;
+    } else if (line.startsWith('optional_if_exists:')) {
+      current = 'optional';
+      duringSkillKey = null;
+    } else if (line.startsWith('during_write:')) {
+      current = 'during';
+      duringSkillKey = null;
+    } else if (line.startsWith('during_write_by_skill:')) {
+      current = 'during_by_skill';
+      duringSkillKey = null;
+    } else if (line.startsWith('after_must_update:')) {
+      current = 'after';
+      duringSkillKey = null;
+    } else if (line.startsWith('validators:')) {
+      current = 'validators';
+      duringSkillKey = null;
+    } else if (line.startsWith('skills:')) {
+      current = 'skills';
+      duringSkillKey = null;
+    } else if (current === 'during_by_skill' && line.match(/^  (\S+):$/)) {
+      duringSkillKey = line.trim().slice(0, -1);
+    } else if (line.trim().startsWith('- ') && current) {
       const item = subst(line.trim().slice(2).replace(/^["']|["']$/g, ''));
-      sections[current].push(item);
+      if (current === 'during_by_skill' && duringSkillKey) {
+        pushDuring(item, duringSkillKey);
+      } else if (current === 'during') {
+        pushDuring(item);
+      } else if (current && sections[current]) {
+        sections[current].push(item);
+      }
     }
   }
 
   return { novelAbs, chapter: ch, sections, manifestName };
+}
+
+/** Relative write paths for a skill within a manifest (falls back to union during_write). */
+export function getManifestSkillWrites(manifestName, skill, novelRoot, chapter) {
+  const { sections } = resolveManifest(manifestName, novelRoot, chapter);
+  const bySkill = sections.duringBySkill?.[skill];
+  if (bySkill?.length) return bySkill;
+  if (!sections.during.length) return [];
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  const prefix = novelAbs.replace(/\\/g, '/') + '/';
+  return sections.during.map((abs) =>
+    abs.startsWith(prefix) ? abs.slice(prefix.length) : abs
+  );
 }
 
 export function manifestFilesExist(sections) {
@@ -244,6 +362,26 @@ export function parseSummaryYaml(text) {
     characters_present: getList('characters_present'),
     word_count: parseInt(get('word_count') || '0', 10),
   };
+}
+
+/** Resolve characters_present entries (id: foo or 明昼) to display names via index.yaml */
+export function resolveSummaryCharacterNames(novelAbs, summaryText) {
+  if (!summaryText) return [];
+  const parsed = parseSummaryYaml(summaryText);
+  const index = loadText(path.join(novelAbs, 'canon/characters/index.yaml')) || '';
+  const names = [];
+  for (const item of parsed.characters_present) {
+    const idM = item.match(/^id:\s*(\S+)/);
+    if (idM) {
+      const id = idM[1];
+      const block = index.split(/-\s+id:/).find((b) => b.trimStart().startsWith(id));
+      const nameM = block?.match(/name:\s*(.+)/);
+      names.push(nameM ? nameM[1].trim().replace(/^["']|["']$/g, '') : id);
+    } else {
+      names.push(item.replace(/^["']|["']$/g, ''));
+    }
+  }
+  return names.filter(Boolean);
 }
 
 export function loadGraph(novelAbs) {
@@ -763,13 +901,73 @@ export function validateRegistryConsistency(novelAbs, lastCompleted, errors, war
   }
 }
 
+/** High-priority session-collect questions without author_ack block advance. */
+export function assessSessionCollect(novelAbs) {
+  const t = loadText(path.join(novelAbs, 'state/working/session-collect.yaml')) || '';
+  const unackedHigh = [];
+  for (const block of t.split(/-\s+id:/).slice(1)) {
+    const id = block.match(/^(\S+)/)?.[1]?.trim();
+    const priority = block.match(/priority:\s*(\S+)/)?.[1]?.trim();
+    const ack = /author_ack:\s*true/.test(block);
+    if (id && priority === 'high' && !ack) unackedHigh.push(id);
+  }
+  return { ok: unackedHigh.length === 0, unackedHigh };
+}
+
+/** Scaffold revision triple when review FAIL (patch-cycle entry). */
+export function scaffoldRevisionRound(novelAbs, chapter, round) {
+  const padded = padChapter(chapter);
+  const dir = path.join(novelAbs, 'state/revisions', `ch-${padded}-r${round}`);
+  fs.mkdirSync(dir, { recursive: true });
+  const msPath = path.join(novelAbs, `manuscripts/chapters/ch-${padded}.md`);
+  const origPath = path.join(dir, 'original.md');
+  if (!fs.existsSync(origPath) && fs.existsSync(msPath)) {
+    fs.copyFileSync(msPath, origPath);
+  }
+  for (const f of ['patch.md', 'diff.md']) {
+    const p = path.join(dir, f);
+    if (!fs.existsSync(p)) fs.writeFileSync(p, '', 'utf8');
+  }
+  return dir;
+}
+
+/** appearance-log character ids should exist as nodes in graph.yaml */
+export function validateAppearanceGraphSync(novelAbs, chapter, warnings, errors, strict = false) {
+  const graph = loadText(path.join(novelAbs, 'canon/entities/graph.yaml')) || '';
+  const nodeIds = new Set([...graph.matchAll(/-\s+id:\s*(\S+)/g)].map((m) => m[1]));
+  const appear = loadText(path.join(novelAbs, 'registries/appearance-log.yaml')) || '';
+  const chAppearances = [...appear.matchAll(/character_id:\s*(\S+)[\s\S]*?chapter:\s*(\d+)/g)]
+    .filter((m) => parseInt(m[2], 10) === chapter)
+    .map((m) => m[1]);
+  const missing = [...new Set(chAppearances)].filter((id) => !nodeIds.has(id));
+  if (!missing.length) return;
+  const msg = `ch-${padChapter(chapter)} appearance-log ids missing in graph.yaml: ${missing.join(', ')} — delegate cast-network-weaver`;
+  if (strict) errors.push(msg);
+  else warnings.push(msg);
+}
+
+/** Sync per-novel harness/read-order.md after phase advance. */
+export function syncReadOrderOnAdvance(novelAbs, completedChapter) {
+  const p = path.join(novelAbs, 'harness/read-order.md');
+  if (!fs.existsSync(p)) return;
+  const nextCh = completedChapter + 1;
+  let text = loadText(p) || '';
+  text = text.replace(
+    /## 当前阶段：[^\n]*/,
+    `## 当前阶段：drafting · 第 ${nextCh} 章写作（已完成 ${completedChapter} 章）`
+  );
+  fs.writeFileSync(p, text, 'utf8');
+}
+
 export function validateContinuityArtifacts(novelAbs, lastCompleted, errors, warnings) {
   for (let ch = 1; ch <= lastCompleted; ch++) {
     const padded = padChapter(ch);
     const summaryPath = path.join(novelAbs, `state/memory/chapter-summaries/ch-${padded}.yaml`);
     const retentionPath = path.join(novelAbs, `state/retention/ch-${padded}.yaml`);
     if (!fs.existsSync(summaryPath)) errors.push(`missing chapter-summary ch-${padded} (required after continuity)`);
-    if (!fs.existsSync(retentionPath)) warnings.push(`missing retention ch-${padded} (retention-analyst)`);
+    if (!fs.existsSync(retentionPath)) errors.push(`missing retention ch-${padded} (retention-analyst)`);
+
+    validateAppearanceGraphSync(novelAbs, ch, warnings, errors, false);
 
     const ms = loadTextSafe(path.join(novelAbs, `manuscripts/chapters/ch-${padded}.md`));
     const summary = loadText(summaryPath);
@@ -817,8 +1015,7 @@ export function reviewCharacterConsistency(novelAbs, chapter, text, results) {
   let summaryOk = true;
   const missingFromText = [];
   if (summary) {
-    const parsed = parseSummaryYaml(summary);
-    for (const name of parsed.characters_present) {
+    for (const name of resolveSummaryCharacterNames(novelAbs, summary)) {
       if (name && !text.includes(name)) {
         summaryOk = false;
         missingFromText.push(name);
@@ -1031,6 +1228,112 @@ export function reviewDialogueQuality(novelAbs, chapter, text, results) {
       hint: '按角色卡润色对话，遵守 golden-rules 展示法则',
     });
   }
+}
+
+export function loadWritingPlan(novelAbs) {
+  const p = path.join(novelAbs, 'state/writing-plan.json');
+  const defaults = {
+    version: 1,
+    minWordsPerChapter: 3000,
+    maxWordsPerChapter: 6000,
+    maxChaptersPerSession: 4,
+    maxChaptersPerBatch: 2,
+    writingMode: 'serial',
+  };
+  if (!fs.existsSync(p)) return defaults;
+  try {
+    return { ...defaults, ...JSON.parse(fs.readFileSync(p, 'utf8')) };
+  } catch (_) {
+    return defaults;
+  }
+}
+
+/** 新会话接力包 — 写入 state/working/session-relay.md */
+export function writeSessionRelay(novelAbs, novelRoot, nextStepSummary = null) {
+  const phase = loadPhaseState(novelAbs);
+  const plan = loadWritingPlan(novelAbs);
+  const novelYaml = loadText(path.join(novelAbs, 'novel.yaml')) || '';
+  const title = parseYamlScalar(novelYaml, 'title') || parseYamlScalar(novelYaml, 'id') || 'unknown';
+  const id = parseYamlScalar(novelYaml, 'id') || 'unknown';
+  const lastCh = phase.last_completed_chapter || 0;
+  const currentCh = phase.current_chapter || 1;
+  const summaryRolling = loadText(path.join(novelAbs, 'state/memory/summary-rolling.md')) || '（尚无滚动摘要）';
+  const collectPath = path.join(novelAbs, 'state/working/session-collect.yaml');
+  const collect = loadText(collectPath) || 'questions: []\n';
+  const agents = loadText(path.join(novelAbs, 'AGENTS.md'));
+  const readOrder = loadText(path.join(novelAbs, 'harness/read-order.md'));
+
+  const relayDir = path.join(novelAbs, 'state/working');
+  if (!fs.existsSync(relayDir)) fs.mkdirSync(relayDir, { recursive: true });
+
+  const nextBlock = nextStepSummary
+    ? typeof nextStepSummary === 'string'
+      ? nextStepSummary
+      : JSON.stringify(nextStepSummary, null, 2)
+    : '运行 `pnpm forge next` 获取当前 Skill';
+
+  const body = `# 会话接力包（Session Relay）
+
+> 自动生成 · ${new Date().toISOString().slice(0, 19)}  
+> **新会话/新模型请先读本文**，再读 \`harness/read-order.md\`。
+
+## 本书快照
+
+| 项 | 值 |
+|----|-----|
+| id | ${id} |
+| 书名 | ${title} |
+| phase | ${phase.phase} · ${phase.sub_phase || '-'} |
+| 已完成章 | ${lastCh} |
+| 当前写作章 | ${currentCh} |
+
+## 生产约束（writing-plan.json）
+
+- 单章字数：${plan.minWordsPerChapter}–${plan.maxWordsPerChapter} 汉字（review 下限 ${plan.minWordsPerChapter}）
+- **单次对话最多写 ${plan.maxChaptersPerSession} 章正文**（超过须新开会话）
+- batch-planner 硬上限：每批 ≤ ${plan.maxChaptersPerBatch} 章 beats
+
+## 下一步
+
+${nextBlock}
+
+## 待作者确认（session-collect）
+
+\`\`\`yaml
+${collect.trim()}
+\`\`\`
+
+## 滚动摘要（节选）
+
+${summaryRolling.slice(0, 2000)}${summaryRolling.length > 2000 ? '\n\n…（完整见 state/memory/summary-rolling.md）' : ''}
+
+## 本书铁律摘要
+
+${agents ? agents.split('\n').filter((l) => l.includes('铁律') || l.match(/^\d+\./)).slice(0, 12).join('\n') : '见 AGENTS.md'}
+
+## 命令速查
+
+\`\`\`bash
+pnpm forge next ${novelRoot.replace(/\\/g, '/')}
+pnpm forge manifest chapter-draft ${novelRoot.replace(/\\/g, '/')} --chapter ${currentCh}
+pnpm forge relay refresh ${novelRoot.replace(/\\/g, '/')}
+\`\`\`
+
+## 新会话粘贴块（复制到新对话第一条）
+
+\`\`\`
+Novel Forge 续写《${title}》· id=${id}
+书目录：${novelRoot.replace(/\\/g, '/')}
+请先读：state/working/session-relay.md → harness/read-order.md → AGENTS.md
+再执行：pnpm forge next "${novelRoot.replace(/\\/g, '/')}"
+只扮演一个 Skill；单会话≤${plan.maxChaptersPerSession}章正文。
+\`\`\`
+
+详见 \`harness/SESSION-START.md\` 与框架 \`skills/guides/new-session-onboarding.md\`
+`;
+  const outPath = path.join(relayDir, 'session-relay.md');
+  fs.writeFileSync(outPath, body, 'utf8');
+  return outPath;
 }
 
 export function updateReviewRound(novelAbs, passed) {

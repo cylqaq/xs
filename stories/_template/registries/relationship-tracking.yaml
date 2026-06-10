@@ -1,0 +1,13 @@
+# 关系情感追踪 — 补 entities/graph 边的动态信任度
+relationships: []
+# - id: rel-001
+#   character_a: char-a
+#   character_b: char-b
+#   metric: trust  # trust | affection | hostility
+#   initial_value: -2
+#   current_value: 0
+#   last_update_chapter: 1
+#   history:
+#     - chapter: 3
+#       event: 共同经历
+#       delta: +2

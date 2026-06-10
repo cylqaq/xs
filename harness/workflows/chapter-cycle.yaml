@@ -42,14 +42,18 @@ steps:
     isolation: true
     reads_handoff:
       - chapter-production
+    reads_handoff_when_dialogue:
+      - dialogue-craftsman
     gate: draft_ready
     requires_files:
       - state/memory/chapter-summaries/ch-{chapter_padded}.yaml
       - registries/continuity-log.yaml
+      - state/memory/summary-rolling.md
+      - registries/appearance-log.yaml
     cli_preflight:
       - manifest post-chapter --chapter {chapter}
     cli_postflight:
-      - compact
+      - compact --chapter {chapter}
       - validate
     handoff_writes:
       - state/working/handoffs/ch-{chapter_padded}-continuity-warden.yaml
@@ -58,6 +62,7 @@ steps:
     skill: persona-evolution-warden
     manifest: post-chapter
     isolation: true
+    skip_when: no_persona_shift_triggers
     reads_handoff:
       - continuity-warden
     requires_files:
@@ -93,4 +98,6 @@ steps:
     reads_handoff:
       - rule-reviewer
     requires_review_pass: true
-    note: review PASS 后执行 forge phase advance --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-novel-orchestrator.yaml
+    note: review PASS 后执行 forge phase advance --chapter {chapter}（自动写本步 handoff）

@@ -1,0 +1,9 @@
+# 对话承诺（无明确截止日）— 与 micro-payoffs 互补
+promises: []
+# - id: dp-001
+#   speaker: char-a
+#   listener: char-b
+#   promise_text: ""
+#   chapter_made: 4
+#   status: open  # open | kept | broken
+#   resolved_chapter: null

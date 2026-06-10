@@ -28,6 +28,7 @@ description: >-
 
 - 自行宣布章完成
 - 在同一对话执行 continuity / review
+- **同一会话写超过 `writing-plan.json` 的 `maxChaptersPerSession` 章**（默认 4；见 [`session-production-limits.md`](../../guides/session-production-limits.md)）
 
 ## 多智能体交接
 

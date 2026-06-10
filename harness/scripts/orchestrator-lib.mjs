@@ -12,6 +12,9 @@ import {
   assessSeedIntake,
   resolveManifest,
   beatsExpectsDialogue,
+  personaShiftTriggersForChapter,
+  getManifestSkillWrites,
+  assessSessionCollect,
 } from './forge-lib.mjs';
 
 const FORGE = path.join(ROOT, 'harness/scripts/forge.mjs');
@@ -51,9 +54,11 @@ export function loadWorkflow(name) {
         cli_preflight: [],
         cli_postflight: [],
         reads_handoff: [],
+        reads_handoff_when_dialogue: [],
         also_skills: [],
         requires_files: [],
         handoff_writes: [],
+        skip_when: null,
       };
       listKey = null;
       continue;
@@ -65,12 +70,14 @@ export function loadWorkflow(name) {
     else if (line.match(/^    gate:/)) step.gate = line.replace(/^    gate:\s*/, '').trim();
     else if (line.match(/^    when_delegate:/)) step.when_delegate = line.replace(/^    when_delegate:\s*/, '').trim();
     else if (line.match(/^    when_dialogue:/)) step.when_dialogue = line.includes('true');
+    else if (line.match(/^    skip_when:/)) step.skip_when = line.replace(/^    skip_when:\s*/, '').trim();
     else if (line.match(/^    requires_review_pass:/)) step.requires_review_pass = true;
     else if (line.match(/^    on_fail_goto:/)) step.on_fail_goto = line.replace(/^    on_fail_goto:\s*/, '').trim();
     else if (line.match(/^    note:/)) step.note = line.replace(/^    note:\s*/, '').trim();
     else if (line.match(/^    cli_preflight:/)) listKey = 'cli_preflight';
     else if (line.match(/^    cli_postflight:/)) listKey = 'cli_postflight';
     else if (line.match(/^    reads_handoff:/)) listKey = 'reads_handoff';
+    else if (line.match(/^    reads_handoff_when_dialogue:/)) listKey = 'reads_handoff_when_dialogue';
     else if (line.match(/^    also_skills:/)) listKey = 'also_skills';
     else if (line.match(/^    requires_files:/)) listKey = 'requires_files';
     else if (line.match(/^    handoff_writes:/)) listKey = 'handoff_writes';
@@ -222,7 +229,11 @@ export function inferWorkflow(phaseState, novelAbs, chapter) {
   if (fs.existsSync(reviewPath)) {
     try {
       const r = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
-      if (!r.pass && phaseState.review_round > 0) return 'patch-cycle';
+      if (!r.pass) {
+        if (phaseState.review_round > 0) return 'patch-cycle';
+        const reviewerDone = readHandoff(novelAbs, 'rule-reviewer', chapter)?.complete;
+        if (!reviewerDone) return 'patch-cycle';
+      }
     } catch (_) {}
   }
   return 'chapter-cycle';
@@ -246,12 +257,71 @@ export function stepConditionActive(step, novelAbs, chapter, workflowName) {
   return true;
 }
 
+export function stepHandoffDependencies(step, novelAbs, chapter) {
+  const deps = [...(step.reads_handoff || [])];
+  if (step.reads_handoff_when_dialogue?.length && beatsExpectsDialogue(novelAbs, chapter)) {
+    deps.push(...step.reads_handoff_when_dialogue);
+  }
+  return deps;
+}
+
 export function stepHandoffComplete(novelAbs, step, chapter, workflowName) {
-  if (!step.reads_handoff?.length) return true;
-  for (const dep of step.reads_handoff) {
+  const deps = stepHandoffDependencies(step, novelAbs, chapter);
+  if (!deps.length) return true;
+  for (const dep of deps) {
     const h = readHandoff(novelAbs, dep, chapter);
     if (!h?.complete) return false;
   }
+  return true;
+}
+
+export function stepShouldAutoSkip(novelAbs, step, chapter) {
+  if (step.skip_when === 'no_persona_shift_triggers') {
+    return personaShiftTriggersForChapter(novelAbs, chapter) === 0;
+  }
+  return false;
+}
+
+export function ensureAutoSkippedHandoff(novelAbs, step, chapter, workflowName) {
+  if (!stepShouldAutoSkip(novelAbs, step, chapter)) return false;
+  const own = readHandoff(novelAbs, step.skill, chapter);
+  if (own?.complete) return true;
+
+  const wf = loadWorkflow(workflowName);
+  const nextIdx = wf.steps.findIndex((s) => s.skill === step.skill) + 1;
+  let nextSkill = '';
+  for (let i = nextIdx; i < wf.steps.length; i++) {
+    if (stepConditionActive(wf.steps[i], novelAbs, chapter, workflowName)) {
+      nextSkill = wf.steps[i].skill;
+      break;
+    }
+  }
+
+  const ctx = {
+    chapter,
+    chapterPadded: padChapter(chapter),
+    reviewRound: loadPhaseState(novelAbs).review_round || 1,
+    novelRoot: novelAbs,
+  };
+  const manifestPaths = step.manifest
+    ? getManifestSkillWrites(step.manifest, step.skill, novelAbs, chapter)
+    : step.requires_files || [];
+  const relPaths = manifestPaths.length ? manifestPaths : step.requires_files || [];
+  const artifacts = relPaths.map((rel) => {
+    const p = path.join(novelAbs, substTokens(rel, ctx));
+    return { path: rel, exists: fs.existsSync(p) };
+  });
+
+  writeHandoff(novelAbs, {
+    skill: step.skill,
+    chapter,
+    workflow: workflowName,
+    stepId: step.id,
+    artifacts,
+    nextSkill,
+    notes: `auto-skip: ${step.skip_when} (chapter ${chapter})`,
+    postflightPassed: [],
+  });
   return true;
 }
 
@@ -343,6 +413,7 @@ export function detectWorkflowFocus(novelAbs, wf, chapter, phaseState) {
 
   for (const step of wf.steps) {
     if (!stepConditionActive(step, novelAbs, chapter, workflowName)) continue;
+    ensureAutoSkippedHandoff(novelAbs, step, chapter, workflowName);
 
     const own = readHandoff(novelAbs, step.skill, chapter);
     if (own?.complete) continue;
@@ -430,6 +501,41 @@ export function validateChapterWorkflowHandoffs(novelAbs, chapter, workflowName 
   return { ok: missing.length === 0 && postflightGaps.length === 0, missing, postflightGaps };
 }
 
+/** All chapter-cycle handoffs including @novel-orchestrator advance (post phase advance). */
+export function validateChapterFullyClosed(novelAbs, chapter, workflowName = 'chapter-cycle') {
+  const pre = validateChapterWorkflowHandoffs(novelAbs, chapter, workflowName);
+  const wf = loadWorkflow(workflowName);
+  const advance = wf.steps.find((s) => s.requires_review_pass);
+  const missing = [...pre.missing];
+  let advanceOk = true;
+  if (advance?.skill) {
+    advanceOk = !!readHandoff(novelAbs, advance.skill, chapter)?.complete;
+    if (!advanceOk) missing.push(advance.skill);
+  }
+  return { ok: pre.ok && advanceOk, missing, postflightGaps: pre.postflightGaps };
+}
+
+/** Write novel-orchestrator handoff after successful phase advance (chapter closed). */
+export function writeAdvanceHandoff(novelAbs, chapter) {
+  const wf = loadWorkflow('chapter-cycle');
+  const step = wf.steps.find((s) => s.requires_review_pass);
+  if (!step) return null;
+  const phasePath = path.join(novelAbs, 'state/phase.yaml');
+  return writeHandoff(novelAbs, {
+    skill: step.skill,
+    chapter,
+    workflow: 'chapter-cycle',
+    stepId: step.id,
+    artifacts: [
+      { path: 'state/phase.yaml', exists: fs.existsSync(phasePath) },
+      { path: `state/reviews/ch-${padChapter(chapter)}.json`, exists: true },
+    ],
+    nextSkill: '',
+    notes: `phase advance: last_completed_chapter=${chapter}`,
+    postflightPassed: ['phase advance'],
+  });
+}
+
 export function resolveNextStep(novelAbs, novelRoot, chapterOpt) {
   const phaseState = loadPhaseState(novelAbs);
   const chapter = chapterOpt ?? (phaseState.current_chapter || 1);
@@ -482,6 +588,11 @@ export function resolveNextStep(novelAbs, novelRoot, chapterOpt) {
     plan.note = `blocked: ${phaseState.block_reason}`;
   }
 
+  const collect = assessSessionCollect(novelAbs);
+  if (!collect.ok) {
+    plan.session_collect_warning = `高优先级 session-collect 未 author_ack: ${collect.unackedHigh.join(', ')}（advance 前须确认）`;
+  }
+
   return plan;
 }
 
@@ -515,6 +626,7 @@ export function compileRunPlan(novelAbs, novelRoot, workflowName, chapterOpt) {
       };
     }
 
+    ensureAutoSkippedHandoff(novelAbs, step, chapter, name);
     const handoffDone = stepHandoffComplete(novelAbs, step, chapter, name);
     const arts = stepArtifactsMet(novelAbs, step, chapter, ctx);
     const gate = stepGateOk(novelAbs, step, chapter);
@@ -559,12 +671,15 @@ export function compileRunPlan(novelAbs, novelRoot, workflowName, chapterOpt) {
 
 function injectNovelRoot(novelRoot, cmd) {
   const parts = cmd.split(/\s+/).filter(Boolean);
-  if (parts.some((p) => p.startsWith('stories/'))) return parts;
+  if (parts.some((p) => p.startsWith('stories/') || p.includes('/') || p.includes('\\'))) return parts;
   if (parts[0] === 'intake') {
     return ['intake', parts[1] || 'check', novelRoot, ...parts.slice(2)];
   }
   if (parts[0] === 'manifest') {
     return ['manifest', parts[1], novelRoot, ...parts.slice(2)];
+  }
+  if (parts[0] === 'compact' || parts[0] === 'validate' || parts[0] === 'review') {
+    return [parts[0], novelRoot, ...parts.slice(1)];
   }
   return [parts[0], novelRoot, ...parts.slice(1)];
 }
@@ -599,13 +714,28 @@ export function completeHandoff(novelAbs, novelRoot, opts) {
     return { ok: false, error: `step @${skill} is skipped for this chapter (condition not met)` };
   }
 
-  if (step.reads_handoff?.length) {
-    for (const dep of step.reads_handoff) {
+  const handoffDeps = stepHandoffDependencies(step, novelAbs, ch || 1);
+  if (handoffDeps.length) {
+    for (const dep of handoffDeps) {
       const h = readHandoff(novelAbs, dep, ch || null);
       if (!h?.complete) {
         return { ok: false, error: `missing handoff from @${dep} — complete that skill first` };
       }
     }
+  }
+
+  if (stepShouldAutoSkip(novelAbs, step, ch || 1)) {
+    ensureAutoSkippedHandoff(novelAbs, step, ch || 1, wfName);
+    const nextIdx = wf.steps.findIndex((s) => s.skill === skill) + 1;
+    let nextSkill = '';
+    for (let i = nextIdx; i < wf.steps.length; i++) {
+      if (stepConditionActive(wf.steps[i], novelAbs, ch || 1, wfName)) {
+        nextSkill = wf.steps[i].skill;
+        break;
+      }
+    }
+    const outPath = handoffPath(novelAbs, skill, ch, wfName);
+    return { ok: true, path: outPath, next_skill: nextSkill, plan: compileRunPlan(novelAbs, novelRoot, wfName, ch || 1), auto_skipped: true };
   }
 
   if (step.gate === 'intake_ready' && !assessSeedIntake(novelAbs, true).ready) {
@@ -632,12 +762,19 @@ export function completeHandoff(novelAbs, novelRoot, opts) {
     novelRoot: novelAbs,
   };
   const post = compileCliList(step, ctx, 'cli_postflight');
-  const artifacts = (step.requires_files || []).map((rel) => {
+  const manifestRel = step.manifest
+    ? getManifestSkillWrites(step.manifest, step.skill, novelAbs, ch || 1)
+    : [];
+  const validateRels = step.requires_files?.length ? step.requires_files : manifestRel;
+  const handoffArtifactRels = manifestRel.length ? manifestRel : validateRels;
+  const artifacts = handoffArtifactRels.map((rel) => {
     const p = path.join(novelAbs, substTokens(rel, ctx));
     return { path: rel, exists: fs.existsSync(p) };
   });
-
-  const missingArts = artifacts.filter((a) => !a.exists);
+  const missingArts = validateRels.map((rel) => {
+    const p = path.join(novelAbs, substTokens(rel, ctx));
+    return { path: rel, exists: fs.existsSync(p) };
+  }).filter((a) => !a.exists);
   if (missingArts.length) {
     return {
       ok: false,
@@ -653,6 +790,16 @@ export function completeHandoff(novelAbs, novelRoot, opts) {
       return {
         ok: false,
         error: `cli_postflight failed: ${run.results.filter((r) => !r.ok).map((r) => r.cmd).join(', ')}`,
+      };
+    }
+  }
+
+  if (step.skill === 'rule-reviewer' && wfName === 'chapter-cycle') {
+    if (!reviewPassForChapter(novelAbs, ch || 1)) {
+      return {
+        ok: false,
+        error:
+          'review must PASS before rule-reviewer handoff — fix via patch-cycle (forge next routes delegate_skill)',
       };
     }
   }
@@ -717,5 +864,8 @@ export function formatNextPlan(plan) {
   }
   lines.push(`## 完成后`, `- pnpm forge ${plan.on_complete}`, '');
   if (plan.note) lines.push(`> ${plan.note}`, '');
+  if (plan.session_collect_warning) {
+    lines.push(`## 作者待确认`, plan.session_collect_warning, ``);
+  }
   return lines.filter((l) => l !== '').join('\n');
 }

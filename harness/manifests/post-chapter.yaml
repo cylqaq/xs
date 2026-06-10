@@ -1,5 +1,5 @@
 task: post-chapter
-description: 章后记忆维护 JIT 清单（continuity-warden + retention-analyst）
+description: 章后记忆维护 JIT 清单（continuity / persona-evolution / retention 分责）
 
 before:
   - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
@@ -15,6 +15,7 @@ before:
   - "{novel_root}/canon/characters/voice-matrix.yaml"
   - "{novel_root}/registries/persona-shifts.yaml"
   - "{novel_root}/registries/appearance-log.yaml"
+  - "{novel_root}/canon/entities/graph.yaml"
 
 skills:
   - continuity-warden
@@ -22,13 +23,27 @@ skills:
   - retention-analyst
   - rule-reviewer
 
-during_write:
-  - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
-  - "{novel_root}/state/memory/summary-rolling.md"
-  - "{novel_root}/registries/continuity-log.yaml"
-  - "{novel_root}/registries/appearance-log.yaml"
-  - "{novel_root}/registries/persona-shifts.yaml"
-  - "{novel_root}/state/retention/ch-{chapter_padded}.yaml"
+during_write_by_skill:
+  continuity-warden:
+    - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
+    - "{novel_root}/state/memory/summary-rolling.md"
+    - "{novel_root}/registries/continuity-log.yaml"
+    - "{novel_root}/registries/appearance-log.yaml"
+    - "{novel_root}/canon/timeline/master.yaml"
+    - "{novel_root}/canon/characters/index.yaml"
+    - "{novel_root}/registries/foreshadowing.yaml"
+    - "{novel_root}/registries/hooks.yaml"
+    - "{novel_root}/registries/open-threads.yaml"
+    - "{novel_root}/registries/chekhov-guns.yaml"
+  persona-evolution-warden:
+    - "{novel_root}/registries/persona-shifts.yaml"
+    - "{novel_root}/canon/characters/voice-matrix.yaml"
+  retention-analyst:
+    - "{novel_root}/state/retention/ch-{chapter_padded}.yaml"
+    - "{novel_root}/state/working/session-collect.yaml"
+    - "{novel_root}/registries/cool-points.yaml"
+    - "{novel_root}/registries/micro-payoffs.yaml"
+    - "{novel_root}/registries/plot-debt.yaml"
 
 after_must_update:
   - "{novel_root}/novel.yaml"

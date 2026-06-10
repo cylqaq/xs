@@ -222,14 +222,21 @@ function main() {
 
   completeChapterHandoffs();
 
-  r = runForge('phase', 'advance', SMOKE_ID, '--chapter', '1');
+  r = runForge('phase', 'advance', SMOKE_ID, '--chapter', '1', '--ack-session-collect');
   console.log(r.out);
   if (r.code !== 0) {
     console.error('FAIL: phase advance after handoff chain');
     process.exit(1);
   }
 
-  console.log('\n✓ Smoke PASS — 首章闭环（handoff + review postflight）已验证');
+  const advanceHandoff = path.join(smokeAbs, 'state/working/handoffs/ch-001-novel-orchestrator.yaml');
+  if (!existsSync(advanceHandoff)) {
+    console.error('FAIL: missing ch-001-novel-orchestrator.yaml after phase advance');
+    process.exit(1);
+  }
+  console.log('✓ novel-orchestrator advance handoff present');
+
+  console.log('\n✓ Smoke PASS — 首章闭环（handoff + review + advance handoff）已验证');
 }
 
 main();

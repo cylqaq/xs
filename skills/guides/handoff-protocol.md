@@ -9,20 +9,24 @@
 
 ## handoff complete 会强制
 
-- 上游 handoff 已 `complete`
-- `requires_files` 产物存在
-- `cli_postflight` 全部成功（如 `intake check`、`validate`、`review`）
+- 上游 handoff 已 `complete`（含 `reads_handoff_when_dialogue` 条件依赖）
+- workflow `requires_files` 产物存在（manifest `during_write_by_skill` 全量记入 artifacts）
+- `cli_postflight` 全部成功（continuity：`compact --chapter N` + `validate`）
 - 结果写入交接单 `cli_postflight_passed`
+- `skip_when: no_persona_shift_triggers` 步可自动写 skip handoff，无需单独会话
 
 ## 章完成（drafting）
 
-`rule-reviewer` handoff（内置 `forge review`）PASS 后：
+`rule-reviewer` handoff（**须 review PASS**；FAIL 时 handoff 拒绝，改走 `patch-cycle`）后：
 
 ```bash
 pnpm forge phase advance stories/{id} --chapter N
 ```
 
-缺任一本章 handoff → advance 拒绝。
+- 自动写 `ch-{NNN}-novel-orchestrator.yaml`（advance 步审计）
+- 高优 `session-collect` 未 `author_ack: true` → advance 拒绝（或 `--ack-session-collect`）
+- 缺任一本章 handoff（含 rule-reviewer）→ advance 拒绝
+- 完整闭环校验：`validateChapterFullyClosed`（含 novel-orchestrator）
 
 ## 工作流真相源
 

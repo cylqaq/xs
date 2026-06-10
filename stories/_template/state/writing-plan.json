@@ -3,6 +3,9 @@
   "novelId": "my-novel",
   "totalChapters": 80,
   "minWordsPerChapter": 3000,
+  "maxWordsPerChapter": 6000,
+  "maxChaptersPerSession": 4,
+  "maxChaptersPerBatch": 2,
   "writingMode": "serial",
   "status": "planning",
   "chapters": []

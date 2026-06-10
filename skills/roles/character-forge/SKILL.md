@@ -15,7 +15,7 @@ description: >-
 ## 产出
 
 - `canon/characters/index.yaml`
-- `canon/characters/{id}.md` — **必填节**见下
+- `canon/characters/{id}.md` — 字段见 [`character-soul-card-schema.md`](../../guides/character-soul-card-schema.md)
 - 更新 `canon/world/power-defects.yaml` 的 `character_bindings`（与 world 规则一致）
 
 ## 人物卡必填节

@@ -53,7 +53,7 @@ BEFORE → DURING → AFTER → GATE(handoff+review) → advance
 | `persona-voice` | 02c | persona-voice-binder |
 | `outline-batch` | 03–04 | plot-architect, foreshadow-engineer, hook-manager, batch-planner, retention-analyst |
 | `chapter-draft` | 05 | context-router, chapter-production, dialogue-craftsman |
-| `post-chapter` | 06 | continuity-warden, persona-evolution-warden, retention-analyst |
+| `post-chapter` | 06 | continuity-warden, persona-evolution-warden, retention-analyst（`during_write_by_skill` 分责） |
 | `revision-volume` | 07 | chief-editor, style-guardian, patch-refiner, rule-reviewer |
 | `rebuild-canon` | 08 | canon-rebuilder |
 

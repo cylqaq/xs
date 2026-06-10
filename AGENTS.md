@@ -34,10 +34,12 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 1. **开书先 intake** — `pnpm forge intake questions` 多轮收 seed，`forge intake check` PASS 后才 novel-bootstrap
 2. **先 context + manifest，再动笔** — `pnpm forge context` + `pnpm forge manifest`
 3. **只改手稿与 state** — `canon/` 须经 continuity 流程更新，禁止凭记忆覆盖
+3a. **新会话先读** `state/working/session-relay.md`（`pnpm forge relay refresh`）
+3b. **单会话≤4章正文** — 见 `writing-plan.json` · `skills/guides/session-production-limits.md`
 4. **登记册必同步** — 伏笔/钩子/爽点/微兑现/plot-debt 章后更新
-5. **章后链** — continuity-warden → retention-analyst → validate + **review**
-6. **review 失败** — 按 `action_items.delegate_skill` 委派（patch-refiner / chapter-expander / dialogue-craftsman / continuity-warden），≤3 轮，否则 blocked
-7. **章完成** — `forge handoff complete --skill rule-reviewer`（强制 review postflight）→ review PASS → `pnpm forge phase advance --chapter N`（须本章 handoff 齐全）
+5. **章后链** — continuity-warden → persona-evolution-warden → retention-analyst → **review**
+6. **review 失败** — `forge next` 进入 `patch-cycle`；按 `action_items.delegate_skill` 修补（revision 三元组自动脚手架），≤3 轮否则 blocked
+7. **章完成** — rule-reviewer handoff（须 review PASS）→ `forge phase advance --chapter N`（写 `@novel-orchestrator` handoff；高优 session-collect 须 `author_ack` 或 `--ack-session-collect`）
 8. **禁止**在未更新 `continuity-log.yaml` 的情况下声称「已回收伏笔」
 
 ## Canonical Docs

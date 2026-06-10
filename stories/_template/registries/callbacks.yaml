@@ -1,0 +1,7 @@
+# 前后呼应登记
+callbacks: []
+# - id: cb-001
+#   original_ref: cg-001
+#   original_chapter: 2
+#   callback_chapter: 15
+#   callback_type: direct  # direct | inverted | expanded
