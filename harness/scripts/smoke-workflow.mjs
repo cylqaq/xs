@@ -53,7 +53,18 @@ function main() {
       process.exit(1);
     }
   }
-  console.log('✓ creation-chain outline 4 步独立 Skill');
+  const characterSkills = plan.steps
+    .filter((s) =>
+      ['character-forge', 'cast-network-weaver', 'persona-voice-binder'].includes(s.skill)
+    )
+    .map((s) => s.skill);
+  for (const sk of ['character-forge', 'cast-network-weaver', 'persona-voice-binder']) {
+    if (!characterSkills.includes(sk)) {
+      console.error(`FAIL: creation-chain missing character step @${sk}`);
+      process.exit(1);
+    }
+  }
+  console.log('✓ creation-chain 人物 3 步 + outline 4 步独立 Skill');
 
   r = runForge('handoff', 'complete', SMOKE_ID, '--skill', 'fake-skill', '--workflow', 'creation-chain');
   if (r.code === 0) {

@@ -44,6 +44,13 @@ steps:
     handoff_writes:
       - state/working/handoffs/ch-{chapter_padded}-continuity-warden-fix.yaml
 
+  - id: persona-fix
+    skill: persona-evolution-warden
+    isolation: true
+    when_delegate: persona-evolution-warden
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-persona-evolution-warden-fix.yaml
+
   - id: re-review
     skill: rule-reviewer
     isolation: true

@@ -1,8 +1,15 @@
-# 项目级 Skills（AI 团队 · 20 角色）
+# 项目级 Skills（AI 团队 · 23 角色）
 
 通过 **`pnpm forge next`** + **workflow 五步/章链** 编排，**禁止孤岛**（见 `unified-pipeline.md`、`harness/workflows/README.md`）。
 
 **多智能体**：一次会话一个 Skill → `forge handoff complete` → 下一会话 `forge next`。细则：[`guides/handoff-protocol.md`](guides/handoff-protocol.md)
+
+## 跨 Skill 契约（非独立 workflow 步）
+
+| 契约 | 路径 | 链式负责 |
+|------|------|----------|
+| 能力缺陷矩阵 | `skills/guides/ability-defect-matrix.md` | world → character → foreshadow → hook → plot |
+| 人物人格链 | `skills/guides/character-persona-chain.md` | character-forge → cast-network → persona-voice → 连载 evolution |
 
 ## 编排层
 
@@ -17,13 +24,15 @@
 | 1 | novel-orchestrator | manifest bootstrap |
 | 2 | seed-intake | seed 三层 + `intake check` |
 | 3 | novel-bootstrap | premise、phase→worldbuilding |
-| 4 | world-architect | canon/world |
-| 5 | character-forge | canon/characters |
-| 6 | plot-architect | outline.md、arcs.yaml |
-| 7 | foreshadow-engineer | foreshadowing、chekhov-guns |
-| 8 | hook-manager | hooks、open-threads |
-| 9 | batch-planner | beats（≤2章/batch）、batches |
-| 10 | retention-analyst | plot-debt 汇总（outline 末步） |
+| 4 | world-architect | canon/world、power-defects |
+| 5 | character-forge | 灵魂卡 index + {id}.md |
+| 6 | cast-network-weaver | cast-roster、graph、appearance-log |
+| 7 | persona-voice-binder | voice-matrix、persona-shifts planned |
+| 8 | plot-architect | outline.md、arcs.yaml |
+| 9 | foreshadow-engineer | foreshadowing、chekhov-guns |
+| 10 | hook-manager | hooks、open-threads |
+| 11 | batch-planner | beats（≤2章/batch）、batches |
+| 12 | retention-analyst | plot-debt 汇总（outline 末步） |
 
 ## 连载链（`chapter-cycle` · 每章）
 
@@ -32,10 +41,11 @@
 | 1 | context-router | manifest + context |
 | 2 | chapter-production | 手稿 |
 | 3 | dialogue-craftsman | **条件**：beats 含对话 |
-| 4 | continuity-warden | memory + registries |
-| 5 | retention-analyst | retention/ch-NNN.yaml |
-| 6 | rule-reviewer | **强制** review postflight |
-| 7 | novel-orchestrator | phase advance |
+| 4 | continuity-warden | memory + registries + appearance-log |
+| 5 | persona-evolution-warden | persona-shifts active |
+| 6 | retention-analyst | retention/ch-NNN.yaml |
+| 7 | rule-reviewer | **强制** review postflight |
+| 8 | novel-orchestrator | phase advance |
 
 ## 补丁链（`patch-cycle` · review FAIL）
 

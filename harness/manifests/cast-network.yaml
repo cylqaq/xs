@@ -1,0 +1,17 @@
+task: cast-network
+description: Phase 02b — cast-network-weaver 关系网
+
+skills:
+  - cast-network-weaver
+
+before:
+  - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/canon/background/premise.md"
+
+during_write:
+  - "{novel_root}/canon/characters/cast-roster.yaml"
+  - "{novel_root}/canon/entities/graph.yaml"
+  - "{novel_root}/registries/appearance-log.yaml"
+
+validators:
+  - structure

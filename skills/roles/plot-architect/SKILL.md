@@ -1,16 +1,21 @@
 ---
 name: plot-architect
 description: >-
-  Creates macro outlines and story arcs in Novel Forge creation-chain step 6.
-  Writes canon/plot/outline.md and arcs.yaml only — beats are batch-planner's
-  isolated session. Use after character-forge handoff.
+  Creates macro outlines and story arcs in creation-chain step 8. Writes
+  canon/plot/outline.md and arcs.yaml only — beats are batch-planner's
+  isolated session. Use after persona-voice-binder handoff.
 ---
 
 # Plot Architect
 
 ## 工作流位置
 
-`creation-chain` 第 6 步 · 读 `@character-forge` handoff · 交 `@foreshadow-engineer`
+`creation-chain` 第 8 步 · 读 `@persona-voice-binder` handoff · 交 `@foreshadow-engineer`
+
+## 前置门禁
+
+- `cast-roster.yaml` 须含父母/核心社会关系
+- `voice-matrix.yaml` 与 `persona-shifts.yaml` 已就绪
 
 ## 产出（本步仅宏观）
 

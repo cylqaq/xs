@@ -40,6 +40,18 @@ layers:
         type: number
         min: 10
         prompt: 计划写多少章？（建议先定 40–120 的可连载体量）
+      narrative_age_span:
+        min_chars: 4
+        optional: true
+        prompt: 叙事主体年龄段？（例：11-18 岁校园、成年职场、全龄跨世）
+      protagonist_age_gap:
+        min_chars: 2
+        optional: true
+        prompt: 双主角年龄差或关系位？（例：年长 2 岁学长、同龄、跨世不变）
+      ability_cost_tone:
+        min_chars: 4
+        optional: true
+        prompt: 能力代价强度？（例：高代价记忆灼蚀/自伤、低代价疲劳、无超自然）
 
   l3:
     label: Layer 3 书名

@@ -178,6 +178,7 @@ function completeChapterHandoffs() {
     'context-router',
     'chapter-production',
     'continuity-warden',
+    'persona-evolution-warden',
     'retention-analyst',
     'rule-reviewer',
   ];

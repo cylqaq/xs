@@ -16,10 +16,11 @@ pnpm forge manifest post-chapter stories/{id} --chapter N
 - [ ] 5. 扫描 registries：本章 planted/resolved 的伏笔与钩子
 - [ ] 6. 写 registries/continuity-log.yaml
 - [ ] 7. 再生 state/memory/summary-rolling.md
-- [ ] 8. 交接 `@retention-analyst` 更新 plot-debt / retention
-- [ ] 9. `pnpm forge compact` + `pnpm forge validate`
-- [ ] 10. 交接 `@rule-reviewer` → `pnpm forge review --chapter N`
-- [ ] 11. 通过后 `pnpm forge phase advance stories/{id} --chapter N`（同步 phase.yaml + novel.yaml）
+- [ ] 8. 交接 `@persona-evolution-warden`：激活本章 `persona-shifts`；更新 `appearance-log`
+- [ ] 9. 交接 `@retention-analyst` 更新 plot-debt / retention
+- [ ] 10. `pnpm forge compact` + `pnpm forge validate`
+- [ ] 11. 交接 `@rule-reviewer` → `pnpm forge review --chapter N`（含 persona_voice 维）
+- [ ] 12. 通过后 `pnpm forge phase advance stories/{id} --chapter N`（同步 phase.yaml + novel.yaml）
 ```
 
 ## chapter-summary 必含字段

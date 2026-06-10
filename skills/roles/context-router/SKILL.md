@@ -27,6 +27,17 @@ description: >-
 | beats ≥3 核心角色同场 | graph_hybrid |
 | graph 空或边断裂 | bm25_fallback + `forge context-index` |
 
+## 人物 JIT（必含）
+
+写章 context 须包含本章出场角色的：
+
+- `voice-matrix.yaml` 对应条目
+- `persona-shifts.yaml` 当前生效 `voice_delta`
+- `cast-roster.yaml` 社会身份一句
+- `appearance-log` 该章 `characters_present`（若已存在）
+
+见 [`skills/guides/character-persona-chain.md`](../../guides/character-persona-chain.md)
+
 ## 多智能体交接
 
 ```bash

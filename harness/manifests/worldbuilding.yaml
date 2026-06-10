@@ -13,6 +13,7 @@ before:
 during_write:
   - "{novel_root}/canon/world/overview.md"
   - "{novel_root}/canon/world/rules.md"
+  - "{novel_root}/canon/world/power-defects.yaml"
   - "{novel_root}/canon/background/era.md"
   - "{novel_root}/canon/entities/graph.yaml"
 

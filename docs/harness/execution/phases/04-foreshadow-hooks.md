@@ -18,4 +18,5 @@ manifest：`outline-batch` · workflow：[`creation-chain.yaml`](../../../../har
 ## 交叉引用
 
 - beats 中 `foreshadowing: [fs-001]` 须存在于 registry
+- `power-defects.yaml` 的 `tragedy_ignition`（T1…）每项至少 1 条 `foreshadowing` planned
 - 每步结束：`forge handoff complete --skill <name>`

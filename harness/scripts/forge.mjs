@@ -30,6 +30,7 @@ import {
   validateContinuityArtifacts,
   checkPhaseNovelSync,
   reviewCharacterConsistency,
+  reviewPersonaVoice,
   reviewTimelineOrder,
   reviewDialogueQuality,
   reviewBeatsCoverage,
@@ -44,6 +45,8 @@ import {
   validateTaskBootstrap,
   validateTaskWorldbuilding,
   validateTaskCharacters,
+  validateTaskCastNetwork,
+  validateTaskPersonaVoice,
   validateTaskOutlineBatch,
   validateTaskRebuild,
   validateTaskRevisionVolume,
@@ -182,6 +185,8 @@ function cmdValidate(args) {
     }
     if (task === 'worldbuilding') validateTaskWorldbuilding(novelAbs, errors);
     if (task === 'characters') validateTaskCharacters(novelAbs, errors);
+    if (task === 'cast-network') validateTaskCastNetwork(novelAbs, errors, warnings);
+    if (task === 'persona-voice') validateTaskPersonaVoice(novelAbs, errors, warnings);
     if (task === 'outline-batch') validateTaskOutlineBatch(novelAbs, taskChapter, errors);
     if (task === 'rebuild-canon') validateTaskRebuild(novelAbs, errors);
     if (task === 'revision-volume') validateTaskRevisionVolume(novelAbs, taskChapter, errors, warnings);
@@ -358,6 +363,7 @@ function cmdReview(args) {
     }
 
     reviewCharacterConsistency(novelAbs, chapter, text, results);
+    reviewPersonaVoice(novelAbs, chapter, text, results);
     reviewTimelineOrder(novelAbs, chapter, text, results);
     reviewDialogueQuality(novelAbs, chapter, text, results);
     reviewBeatsCoverage(novelAbs, chapter, text, results);

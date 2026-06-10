@@ -1,0 +1,9 @@
+# 声线矩阵 — persona-voice-binder 维护；章后 persona-evolution-warden 可写 active_overlay
+
+voices: {}
+# char-protagonist:
+#   register: 叙述口吻一句
+#   verbal_tics: [语气词]
+#   forbidden_ooc: [禁止出现的口吻]
+#   sample_lines: [示例对白]
+#   active_overlay: null  # 转变后由 persona-evolution-warden 填写

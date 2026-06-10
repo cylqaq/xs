@@ -1,18 +1,25 @@
 task: characters
-description: Phase 02 — character-forge 人物卡与实体图
+description: Phase 02 — character-forge → cast-network-weaver → persona-voice-binder
 
 skills:
   - character-forge
+  - cast-network-weaver
+  - persona-voice-binder
   - foreshadow-engineer
 
 before:
   - "{novel_root}/canon/world/rules.md"
+  - "{novel_root}/canon/world/power-defects.yaml"
   - "{novel_root}/canon/background/premise.md"
   - "{novel_root}/canon/entities/graph.yaml"
 
 during_write:
   - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/canon/characters/cast-roster.yaml"
+  - "{novel_root}/canon/characters/voice-matrix.yaml"
   - "{novel_root}/canon/entities/graph.yaml"
+  - "{novel_root}/registries/appearance-log.yaml"
+  - "{novel_root}/registries/persona-shifts.yaml"
 
 after_must_update:
   - "{novel_root}/registries/foreshadowing.yaml"

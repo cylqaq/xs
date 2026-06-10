@@ -13,7 +13,8 @@ flowchart TB
   subgraph CREATE["① creation-chain"]
     O[novel-orchestrator] --> SI[seed-intake] --> B[novel-bootstrap]
     B --> W[world-architect] --> C[character-forge]
-    C --> P[plot-architect] --> F[foreshadow-engineer]
+    C --> CN[cast-network-weaver] --> PV[persona-voice-binder]
+    PV --> P[plot-architect] --> F[foreshadow-engineer]
     F --> H[hook-manager] --> BP[batch-planner] --> ORA[retention-analyst outline]
   end
 
@@ -23,7 +24,7 @@ flowchart TB
     DC -->|yes| DCs[dialogue-craftsman]
     DC -->|no| CW[continuity-warden]
     DCs --> CW
-    CW --> RA[retention-analyst] --> RV[rule-reviewer]
+    CW --> PE[persona-evolution-warden] --> RA[retention-analyst] --> RV[rule-reviewer]
   end
 
   subgraph GATE["③ patch-cycle"]

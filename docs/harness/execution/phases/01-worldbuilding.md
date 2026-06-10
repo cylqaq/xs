@@ -17,6 +17,7 @@ pnpm forge manifest worldbuilding stories/{id}
 
 - `canon/world/overview.md`
 - `canon/world/rules.md`
+- `canon/world/power-defects.yaml`（能力缺陷矩阵，见 `skills/guides/ability-defect-matrix.md`）
 - `canon/background/era.md`
 - 按需 `canon/world/locations/*.md`、`factions/*.md`
 - 种子 `canon/entities/graph.yaml` 节点（world/location/faction）

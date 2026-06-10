@@ -24,6 +24,7 @@ description: >-
 
 - `seed/layer1-core.yaml`、`layer2-customize.yaml`、`layer3-title.md`
 - `seed/intake-status.yaml` → `readiness: ready`
+- Layer 2 **可选**（能力/学龄题材）：`narrative_age_span`、`protagonist_age_gap`、`ability_cost_tone` — 见 `harness/templates/intake-questions.yaml`
 
 ## 多智能体交接
 

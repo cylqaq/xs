@@ -20,7 +20,9 @@ description: >-
 ## 输入
 
 - `canon/plot/beats/ch-{NNN}.md` 对话场景
-- 出场角色 `canon/characters/{id}.md` 声纹
+- `canon/characters/{id}.md` 灵魂卡
+- **`canon/characters/voice-matrix.yaml`** 声线矩阵
+- **`registries/persona-shifts.yaml`** 中 `active_from_ch ≤ N` 的 `voice_delta`
 
 ## 法则
 

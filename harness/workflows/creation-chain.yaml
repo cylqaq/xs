@@ -1,6 +1,6 @@
 # 开书创建链 — 每 Skill 隔离会话，handoff 后方可进入下一步
 workflow: creation-chain
-description: ideation → worldbuilding → characters → outline（5 Skill）→ drafting 入口
+description: ideation → worldbuilding → characters（3 Skill）→ outline（5 Skill）→ drafting 入口
 
 steps:
   - id: orchestrate-open
@@ -67,12 +67,40 @@ steps:
     handoff_writes:
       - state/working/handoffs/creation-character-forge.yaml
 
+  - id: cast-network
+    skill: cast-network-weaver
+    manifest: characters
+    isolation: true
+    reads_handoff:
+      - character-forge
+    requires_files:
+      - canon/characters/cast-roster.yaml
+      - canon/entities/graph.yaml
+    cli_postflight:
+      - validate --task cast-network
+    handoff_writes:
+      - state/working/handoffs/creation-cast-network-weaver.yaml
+
+  - id: persona-voice
+    skill: persona-voice-binder
+    manifest: characters
+    isolation: true
+    reads_handoff:
+      - cast-network-weaver
+    requires_files:
+      - canon/characters/voice-matrix.yaml
+      - registries/persona-shifts.yaml
+    cli_postflight:
+      - validate --task persona-voice
+    handoff_writes:
+      - state/working/handoffs/creation-persona-voice-binder.yaml
+
   - id: plot-outline
     skill: plot-architect
     manifest: outline-batch
     isolation: true
     reads_handoff:
-      - character-forge
+      - persona-voice-binder
     requires_files:
       - canon/plot/outline.md
       - canon/plot/arcs.yaml

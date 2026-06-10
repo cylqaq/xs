@@ -1,0 +1,16 @@
+# 全员名册 — cast-network-weaver 维护
+# tier: core | major | minor | extra
+
+tiers:
+  core: []
+  major: []
+  minor: []
+
+characters: []
+# - id: char-protagonist
+#   name: 主角名
+#   tier: core
+#   social_role: 学生
+#   relation_to_leads: 自述
+#   planned_first_ch: 1
+#   persona_state: baseline

@@ -23,7 +23,9 @@ stories/{novel-id}/
 │   │   └── premise.md         # 故事前提（与 seed 对齐后升格）
 │   ├── characters/
 │   │   ├── index.yaml         # id、file、status、last_seen_ch
-│   │   └── {char-id}.md
+│   │   ├── cast-roster.yaml   # 全员名册与社会关系摘要
+│   │   ├── voice-matrix.yaml  # 声线、OOC 禁忌、示例对白
+│   │   └── {char-id}.md       # 灵魂卡
 │   ├── timeline/
 │   │   └── master.yaml        # 事件序：id, ch, time, summary
 │   ├── plot/
@@ -43,7 +45,9 @@ stories/{novel-id}/
 │   ├── plot-debt.yaml         # 情节债务仪表
 │   ├── cool-points.yaml       # 爽点
 │   ├── micro-payoffs.yaml     # 微兑现
-│   └── continuity-log.yaml
+│   ├── continuity-log.yaml
+│   ├── appearance-log.yaml    # 出场章记录
+│   └── persona-shifts.yaml    # 性格转变 planned/active
 ├── state/
 │   ├── phase.yaml             # 含 review_round / blocked
 │   ├── context-mode.yaml      # auto | graph_hybrid | bm25_fallback
@@ -72,7 +76,9 @@ stories/{novel-id}/
 | `seed/` | 作者想讲什么 | 人 | bootstrap skill |
 | `canon/world` | 世界是什么 | world-architect | 全员 JIT |
 | `canon/background` | 故事发生在什么背景下 | plot-architect | 写章前 |
-| `canon/characters` | 谁是谁、关系如何 | character-forge | 写章前 |
+| `canon/characters` | 谁是谁、声线、关系 | character-forge → cast-network → persona-voice | 写章前 |
+| `registries/persona-shifts` | 性格转变状态 | persona-voice / persona-evolution-warden | 写章前/后 |
+| `registries/appearance-log` | 出场记录 | cast-network / continuity-warden | 写章前/后 |
 | `canon/plot` | 结构与时序 | plot-architect | 写章前 |
 | `registries/foreshadowing` | 埋了什么、何时收 | foreshadow-engineer | 写章前/后 |
 | `registries/hooks` | 读者被什么吊着 | hook-manager | 写章前/后 |

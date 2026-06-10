@@ -91,8 +91,8 @@ pnpm smoke:all                  # L2 handoff + CLI 闭环
 
 | workflow | YAML | 主 manifest | 主 phase 文档 | Skill 索引 |
 |----------|------|-------------|---------------|------------|
-| creation-chain | `creation-chain.yaml` | bootstrap / worldbuilding / characters / outline-batch | 00–03 | `skills/README.md` 创建链 |
-| chapter-cycle | `chapter-cycle.yaml` | chapter-draft / post-chapter | 05–06 | 连载链 |
+| creation-chain | `creation-chain.yaml` | bootstrap / worldbuilding / characters / outline-batch | 00–03 | `skills/README.md` 创建链（12 步） |
+| chapter-cycle | `chapter-cycle.yaml` | chapter-draft / post-chapter | 05–06 | 连载链（8 步） |
 | patch-cycle | `patch-cycle.yaml` | —（读 reviews） | 07 | patch-refiner 等 |
 | revision-volume | `revision-volume.yaml` | revision-volume | 07 | 卷精修 |
 | rebuild-chain | `rebuild-chain.yaml` | rebuild-canon | 08 | canon-rebuilder |

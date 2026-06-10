@@ -589,11 +589,75 @@ export function validateTaskWorldbuilding(novelAbs, errors) {
     errors.push('worldbuilding: missing canon/world/overview.md');
   if (!fs.existsSync(path.join(novelAbs, 'canon/world/rules.md')))
     errors.push('worldbuilding: missing canon/world/rules.md');
+  if (!fs.existsSync(path.join(novelAbs, 'canon/world/power-defects.yaml')))
+    errors.push('worldbuilding: missing canon/world/power-defects.yaml');
 }
 
 export function validateTaskCharacters(novelAbs, errors) {
-  if (!fs.existsSync(path.join(novelAbs, 'canon/characters/index.yaml')))
+  const indexPath = path.join(novelAbs, 'canon/characters/index.yaml');
+  if (!fs.existsSync(indexPath)) {
     errors.push('characters: missing canon/characters/index.yaml');
+    return;
+  }
+  const indexText = loadText(indexPath) || '';
+  const ids = [...indexText.matchAll(/^\s+-\s+id:\s*(\S+)/gm)].map((m) => m[1]);
+  if (ids.length === 0) errors.push('characters: index.yaml has no character entries');
+  for (const id of ids) {
+    const md = path.join(novelAbs, `canon/characters/${id}.md`);
+    if (!fs.existsSync(md)) errors.push(`characters: missing canon/characters/${id}.md for index id ${id}`);
+  }
+  const protagonists = (indexText.match(/role:\s*protagonist/g) || []).length;
+  if (protagonists < 1) errors.push('characters: need at least one protagonist in index.yaml');
+}
+
+export function validateTaskCastNetwork(novelAbs, errors, warnings = []) {
+  const rosterPath = path.join(novelAbs, 'canon/characters/cast-roster.yaml');
+  if (!fs.existsSync(rosterPath)) {
+    errors.push('cast-network: missing canon/characters/cast-roster.yaml');
+    return;
+  }
+  const roster = loadText(rosterPath) || '';
+  const graphPath = path.join(novelAbs, 'canon/entities/graph.yaml');
+  if (!fs.existsSync(graphPath)) {
+    errors.push('cast-network: missing canon/entities/graph.yaml');
+    return;
+  }
+  const graph = loadText(graphPath) || '';
+  const edgeCount = (graph.match(/type:\s*relation/g) || []).length;
+  if (edgeCount < 3) warnings.push('cast-network: graph has fewer than 3 relation edges');
+  const appearPath = path.join(novelAbs, 'registries/appearance-log.yaml');
+  if (!fs.existsSync(appearPath)) errors.push('cast-network: missing registries/appearance-log.yaml');
+  const indexIds = new Set(
+    [...(loadText(path.join(novelAbs, 'canon/characters/index.yaml')) || '').matchAll(/^\s+-\s+id:\s*(\S+)/gm)].map(
+      (m) => m[1]
+    )
+  );
+  for (const m of roster.matchAll(/^\s+id:\s*(\S+)/gm)) {
+    if (!indexIds.has(m[1])) errors.push(`cast-network: cast-roster id ${m[1]} not in index.yaml`);
+  }
+}
+
+export function validateTaskPersonaVoice(novelAbs, errors, warnings = []) {
+  const voicePath = path.join(novelAbs, 'canon/characters/voice-matrix.yaml');
+  if (!fs.existsSync(voicePath)) {
+    errors.push('persona-voice: missing canon/characters/voice-matrix.yaml');
+    return;
+  }
+  const voice = loadText(voicePath) || '';
+  const shiftPath = path.join(novelAbs, 'registries/persona-shifts.yaml');
+  if (!fs.existsSync(shiftPath)) errors.push('persona-voice: missing registries/persona-shifts.yaml');
+  const indexText = loadText(path.join(novelAbs, 'canon/characters/index.yaml')) || '';
+  const coreIds = [];
+  for (const block of indexText.split(/-\s+id:/).slice(1)) {
+    const id = block.match(/^(\S+)/)?.[1];
+    const role = block.match(/role:\s*(\S+)/)?.[1];
+    if (id && (role === 'protagonist' || role === 'antagonist' || role === 'major')) coreIds.push(id);
+  }
+  for (const id of coreIds) {
+    if (!new RegExp(`${id}:`, 'm').test(voice) && !voice.includes(`id: ${id}`)) {
+      warnings.push(`persona-voice: voice-matrix may missing entry for ${id}`);
+    }
+  }
 }
 
 export function validateTaskOutlineBatch(novelAbs, chapter, errors) {
@@ -780,6 +844,48 @@ export function reviewCharacterConsistency(novelAbs, chapter, text, results) {
       delegate_skill: 'continuity-warden',
       message: '角色名与 canon/summary 不一致',
       hint: '核对 index.yaml 与 chapter-summary characters_present，新角色须先登记',
+    });
+  }
+}
+
+export function reviewPersonaVoice(novelAbs, chapter, text, results) {
+  const voicePath = path.join(novelAbs, 'canon/characters/voice-matrix.yaml');
+  const shiftsPath = path.join(novelAbs, 'registries/persona-shifts.yaml');
+  if (!fs.existsSync(voicePath)) {
+    results.dimensions.push({ id: 'persona_voice', pass: true, msg: 'no voice-matrix yet' });
+    return;
+  }
+  const voice = loadText(voicePath) || '';
+  const shifts = loadText(shiftsPath) || '';
+  const forbiddenHits = [];
+  for (const m of voice.matchAll(/forbidden_ooc:\s*\n((?:\s+-\s+.+\n?)+)/g)) {
+    const block = m[1];
+    for (const line of block.matchAll(/-\s+(.+)/g)) {
+      const phrase = line[1].trim();
+      if (phrase.length >= 2 && text.includes(phrase)) forbiddenHits.push(phrase);
+    }
+  }
+  const activeShifts = [];
+  for (const block of shifts.split(/-\s+id:/).slice(1)) {
+    const status = block.match(/status:\s*(\S+)/)?.[1];
+    const fromCh = parseInt(block.match(/active_from_ch:\s*(\d+)/)?.[1] || '0', 10);
+    const charId = block.match(/^(\S+)/)?.[1];
+    if (status === 'active' && fromCh > 0 && fromCh <= chapter && charId) activeShifts.push(charId);
+  }
+  const pass = forbiddenHits.length === 0;
+  results.dimensions.push({
+    id: 'persona_voice',
+    pass,
+    msg: pass
+      ? `active_shifts=${activeShifts.length}`
+      : `forbidden_ooc_hits=${forbiddenHits.join(',')}`,
+  });
+  if (!pass) {
+    pushActionItem(results, {
+      dimension: 'persona_voice',
+      delegate_skill: 'dialogue-craftsman',
+      message: '对白触犯 voice-matrix forbidden_ooc 或转变后声线漂移',
+      hint: '对照 voice-matrix 与 persona-shifts voice_delta 润色对话',
     });
   }
 }

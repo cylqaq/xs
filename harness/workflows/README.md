@@ -6,7 +6,7 @@
 
 | 工作流 | 用途 |
 |--------|------|
-| `creation-chain` | 开书 10 步（outline 内 5 独立 Skill） |
+| `creation-chain` | 开书 12 步（人物 3 步 + outline 5 步） |
 | `chapter-cycle` | 单章微循环（含 `when_dialogue`） |
 | `patch-cycle` | review FAIL 补丁链 |
 | `revision-volume` | 卷精修 + re-review |

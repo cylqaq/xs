@@ -11,8 +11,8 @@
 | 层 | 状态 | 路径 |
 |----|------|------|
 | 5 工作流 + handoff 硬化 | ✅ | `harness/workflows/` |
-| 20 Skill（已对齐 workflow） | ✅ | `skills/roles/` |
-| 8 manifest + workflow validate | ✅ | `forge workflow validate` |
+| 23 Skill（已对齐 workflow） | ✅ | `skills/roles/` |
+| 10 manifest + workflow validate | ✅ | `forge workflow validate` |
 | 11 维 review + 外置阈值 | ✅ | `harness/review/config.json` |
 | 六路 smoke + CI | ✅ | `pnpm smoke:all` |
 | 真实 seed 首章 E2E | ⬜ | 待正式生成验证 |
@@ -21,8 +21,8 @@
 
 | workflow | Skill 链 |
 |----------|----------|
-| creation-chain | orchestrator → seed → bootstrap → world → character → plot → foreshadow → hook → batch → retention |
-| chapter-cycle | context → production → [dialogue] → continuity → retention → reviewer → advance |
+| creation-chain | orchestrator → seed → bootstrap → world → character → cast-network → persona-voice → plot → foreshadow → hook → batch → retention |
+| chapter-cycle | context → production → [dialogue] → continuity → persona-evolution → retention → reviewer → advance |
 | patch-cycle | delegate → re-review |
 | revision-volume | chief → style → patch → reviewer |
 | rebuild-chain | canon-rebuilder → orchestrator |

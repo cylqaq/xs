@@ -22,6 +22,8 @@ description: >-
 5. 更新 canon delta、registries 状态机
 6. `state/memory/summary-rolling.md`
 7. `registries/continuity-log.yaml`
+8. **`registries/appearance-log.yaml`** 追加本章出场；`index.yaml` 更新 `last_seen_chapter`
+9. 新人名 → 同步 `cast-roster.yaml`（或标 `new_pending` 交 character-forge）
 
 handoff postflight 自动跑 `compact` + `validate`。
 

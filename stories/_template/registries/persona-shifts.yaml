@@ -1,0 +1,12 @@
+# 性格转变 — persona-voice-binder 预埋 planned；persona-evolution-warden 激活
+
+shifts: []
+# - id: ps-001
+#   character_id: char-protagonist
+#   from_trait: 开朗
+#   to_trait: 沉默
+#   trigger_chapter: 10
+#   trigger_event: 一句话
+#   voice_delta: 句长变短、少用语气词
+#   status: planned  # planned | active
+#   active_from_ch: null

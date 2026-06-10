@@ -4,7 +4,9 @@
 |------------------|-------|----------|----------|
 | `stories/*/seed/` | 00 | seed-intake → novel-bootstrap | creation-chain |
 | `stories/*/canon/world/` | 01 | world-architect | creation-chain |
-| `stories/*/canon/characters/` | 02 | character-forge | creation-chain |
+| `stories/*/canon/characters/` | 02 | character-forge → cast-network-weaver → persona-voice-binder | creation-chain |
+| `stories/*/registries/persona-shifts.yaml` | 02 / 06 | persona-voice-binder / persona-evolution-warden | creation / chapter-cycle |
+| `stories/*/registries/appearance-log.yaml` | 02 / 06 | cast-network-weaver / continuity-warden | creation / chapter-cycle |
 | `stories/*/canon/plot/outline*` | 03 | plot-architect | creation-chain |
 | `stories/*/registries/foreshadow*` | 03 | foreshadow-engineer | creation-chain |
 | `stories/*/registries/hooks*` | 03 | hook-manager | creation-chain |

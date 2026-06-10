@@ -12,7 +12,7 @@ ideation → worldbuilding → outlining → drafting ⇄ revision → publish
 |------|-------------------|-------------|-------------|
 | 创建 | ideation | `bootstrap` | orchestrator → seed-intake（`forge intake` 循环）→ intake check → novel-bootstrap |
 | 世界观 | worldbuilding | `worldbuilding` | world-architect |
-| 人物 | outlining · `sub_phase: characters` | `characters` | character-forge |
+| 人物 | outlining · `sub_phase: characters` | `characters` | character-forge → cast-network-weaver → persona-voice-binder |
 | 大纲/批次 | outlining | `outline-batch` | plot-architect → foreshadow-engineer → hook-manager → batch-planner → retention-analyst |
 | 连载 | drafting | `chapter-draft` / `post-chapter` | context-router → chapter-production → [dialogue-craftsman] → continuity-warden → retention-analyst → rule-reviewer → advance |
 | 卷级精修 | revision | `revision-volume` | chief-editor → style-guardian → patch-refiner → rule-reviewer |
@@ -45,6 +45,8 @@ GATE    rule-reviewer handoff（cli_postflight: review）
 | chapter-expander | wordcount |
 | dialogue-craftsman | dialogue_quality |
 | continuity-warden | character_consistency、timeline_order |
+| dialogue-craftsman | persona_voice、dialogue_quality |
+| persona-evolution-warden | persona_shifts 登记遗漏 |
 | chapter-production | 手稿缺失、伏笔 debt |
 
 ## CLI 与阶段绑定

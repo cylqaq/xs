@@ -13,6 +13,10 @@ before:
   - "{novel_root}/registries/open-threads.yaml"
   - "{novel_root}/registries/chekhov-guns.yaml"
   - "{novel_root}/canon/style/glossary.md"
+  - "{novel_root}/canon/characters/cast-roster.yaml"
+  - "{novel_root}/canon/characters/voice-matrix.yaml"
+  - "{novel_root}/registries/persona-shifts.yaml"
+  - "{novel_root}/registries/appearance-log.yaml"
 
 skills:
   - context-router

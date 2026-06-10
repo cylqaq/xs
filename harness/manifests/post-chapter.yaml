@@ -12,9 +12,13 @@ before:
   - "{novel_root}/registries/plot-debt.yaml"
   - "{novel_root}/registries/chekhov-guns.yaml"
   - "{novel_root}/registries/cool-points.yaml"
+  - "{novel_root}/canon/characters/voice-matrix.yaml"
+  - "{novel_root}/registries/persona-shifts.yaml"
+  - "{novel_root}/registries/appearance-log.yaml"
 
 skills:
   - continuity-warden
+  - persona-evolution-warden
   - retention-analyst
   - rule-reviewer
 
@@ -22,6 +26,8 @@ during_write:
   - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
   - "{novel_root}/state/memory/summary-rolling.md"
   - "{novel_root}/registries/continuity-log.yaml"
+  - "{novel_root}/registries/appearance-log.yaml"
+  - "{novel_root}/registries/persona-shifts.yaml"
   - "{novel_root}/state/retention/ch-{chapter_padded}.yaml"
 
 after_must_update:

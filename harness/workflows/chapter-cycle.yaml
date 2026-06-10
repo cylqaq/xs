@@ -1,6 +1,6 @@
 # 单章多智能体微循环 — 各 Skill 隔离对话，只经 handoff + 协议文件协作
 workflow: chapter-cycle
-description: context-router → chapter-production → [dialogue] → continuity → retention → rule-reviewer → phase advance
+description: context-router → chapter-production → [dialogue] → continuity → persona-evolution → retention → rule-reviewer → phase advance
 
 steps:
   - id: route-context
@@ -54,12 +54,23 @@ steps:
     handoff_writes:
       - state/working/handoffs/ch-{chapter_padded}-continuity-warden.yaml
 
+  - id: persona-evolution
+    skill: persona-evolution-warden
+    manifest: post-chapter
+    isolation: true
+    reads_handoff:
+      - continuity-warden
+    requires_files:
+      - registries/persona-shifts.yaml
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-persona-evolution-warden.yaml
+
   - id: retention
     skill: retention-analyst
     manifest: post-chapter
     isolation: true
     reads_handoff:
-      - continuity-warden
+      - persona-evolution-warden
     requires_files:
       - state/retention/ch-{chapter_padded}.yaml
     handoff_writes:

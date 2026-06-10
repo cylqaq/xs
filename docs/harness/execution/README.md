@@ -48,10 +48,12 @@ BEFORE → DURING → AFTER → GATE(handoff+review) → advance
 |----------|------|--------------------------------|
 | `bootstrap` | 00 | novel-orchestrator, seed-intake, novel-bootstrap |
 | `worldbuilding` | 01 | world-architect |
-| `characters` | 02 | character-forge |
+| `characters` | 02a | character-forge |
+| `cast-network` | 02b | cast-network-weaver |
+| `persona-voice` | 02c | persona-voice-binder |
 | `outline-batch` | 03–04 | plot-architect, foreshadow-engineer, hook-manager, batch-planner, retention-analyst |
 | `chapter-draft` | 05 | context-router, chapter-production, dialogue-craftsman |
-| `post-chapter` | 06 | continuity-warden, retention-analyst |
+| `post-chapter` | 06 | continuity-warden, persona-evolution-warden, retention-analyst |
 | `revision-volume` | 07 | chief-editor, style-guardian, patch-refiner, rule-reviewer |
 | `rebuild-canon` | 08 | canon-rebuilder |
 
