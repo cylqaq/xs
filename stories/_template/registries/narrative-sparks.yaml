@@ -1,0 +1,22 @@
+# 叙事火花 inbox — 写章涌现的灵感候选
+# 捕获：chapter-production → continuity-warden
+# 分诊/晋升：retention-analyst（见 skills/guides/narrative-spark-protocol.md）
+# 禁止：未 triaged 的 spark 当下章 canon
+
+sparks: []
+# - id: nk-001
+#   source_chapter: 2
+#   captured_by: chapter-production
+#   captured_at: 2026-06-11
+#   title: 短标题
+#   summary: 灵感内容（1–3 句）
+#   manuscript_anchor: 手稿锚点句（可选）
+#   narrative_potential: medium   # low | medium | high
+#   impact_tier: foreshadow        # micro | thread | foreshadow | hook | beat | arc | outline
+#   status: captured             # captured | triaged | promoted | deferred | rejected | micro-used
+#   promotion_target: null       # open-threads | foreshadowing | hooks | beats | callbacks | arcs | outline-amendments
+#   linked_registry_id: null     # 晋升后的 fs/hk/ot/cb id 或 beat 路径
+#   target_chapter: null
+#   author_ack: false
+#   triage_by: null
+#   triage_notes: ""

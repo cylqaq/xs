@@ -22,6 +22,15 @@ pnpm forge manifest chapter-draft stories/{id} --chapter N
 - `manuscripts/chapters/ch-{NNN}.md`
 - frontmatter：`chapter`, `title`, `pov`, `timeline_marker`
 - 遵守 `skills/guides/golden-rules.md`
+- 涌现灵感 → `state/working/sparks/ch-{NNN}-draft.yaml`（见 `narrative-spark-protocol.md`）；**禁止**直接改 `outline.md`
+
+## 字数与完整性预检（production handoff 前 · 硬门禁）
+
+```bash
+pnpm forge draft check stories/{id} --chapter N
+```
+
+须 **integrity: ok** 且 wordcount tier ≠ fail。见 `skills/guides/production-integrity-gates.md` · `session-production-limits.md`。
 
 ## 禁止
 

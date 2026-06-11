@@ -3,6 +3,7 @@
 | 你正在编辑的路径 | Phase | 主 Skill | workflow |
 |------------------|-------|----------|----------|
 | `stories/*/seed/` | 00 | seed-intake → novel-bootstrap | creation-chain |
+| `stories/*/canon/style/` | 00b | prose-style-architect | creation-chain |
 | `stories/*/canon/world/` | 01 | world-architect | creation-chain |
 | `stories/*/canon/characters/` | 02 | character-forge → cast-network-weaver → persona-voice-binder | creation-chain |
 | `stories/*/registries/persona-shifts.yaml` | 02 / 06 | persona-voice-binder / persona-evolution-warden | creation / chapter-cycle |

@@ -1,41 +1,45 @@
-# 路线图
+# 路线图（框架待办）
 
-**更新**：2026-06-10（第四轮末）· 框架**可进入正式生成验证**
+**更新**：2026-06-11（第八轮 · prose-style 链）
 
-## 当前阶段
-
-编排硬化与 Skill 对齐已完成。下一步：**人类监督的真实 seed 首章**（见 [`first-run-checklist.md`](first-run-checklist.md)）。
+> 本文只列**根框架**能力待办，不追踪任何具体书籍的写作进度。用书操作见 [`first-run-checklist.md`](first-run-checklist.md)、[`book-framework-sync.md`](book-framework-sync.md)。
 
 ## 进行中
 
 | # | 任务 | 完成标志 |
 |---|------|----------|
-| 1 | **正式生成验证** | 真实 seed → creation-chain 全 handoff → 首章 chapter-cycle PASS → phase advance |
+| — | （当前无阻塞性框架项） | — |
 
 ## 待办
 
 | # | 任务 |
 |---|------|
-| 2 | 卷级 revision 实机 |
-| 3 | publish 导出 `publish/exports/` |
-| 4 | `forge diff-canon`、`forge graph` |
+| 1 | 卷级 `revision-volume` smoke 扩展（与 prose-profile 联动） |
+| 2 | publish 导出 `publish/exports/` |
+| 3 | `forge diff-canon`、`forge graph` |
+| 4 | `sentence_variance` review 维（可选，借鉴 Word Compiler） |
 | 5 | Cursor/SDK 多 Agent 自动会话（可选） |
 
-## 已完成（第四轮）
+## 已完成（第八轮）
 
-- outline 五步独立 workflow + Skill 更新
-- handoff 硬化、review 外置、`rebuild-chain`
-- `skills/guides/handoff-protocol.md`
-- 清理开发接力文档（`handoff-fresh-model`、`derived-designs`）
-- 六路 smoke + `forge workflow validate`
+- `prose-style-architect` + creation-chain 第 4 步
+- `harness/style-profiles/` 类型母版 + AI 套话表
+- `forge sync framework` · `validate --task prose-style`
+- review 维 `ai_crutch_words`
+- `book-framework-sync.md` · `framework-status` 与单书进度解耦
+
+## 已完成（第四～七轮）
+
+- outline 五步独立 workflow + handoff 硬化
+- 叙事火花链 · state logs · session-relay
+- 六→七路 smoke + `forge workflow validate`
 
 ## 迭代纪律
 
-改 Skill / workflow / manifest / 执行文档 / 状态机任一 → [`layer-sync-contract.md`](../harness/layer-sync-contract.md) 检查表 + `forge workflow validate`
+改 Skill / workflow / manifest / 执行文档 / 状态机任一 → [`layer-sync-contract.md`](../harness/layer-sync-contract.md) + `pnpm forge workflow validate` + `pnpm smoke:all`
 
 ## 新会话入口
 
 1. [`framework-status.md`](framework-status.md)
 2. [`layer-sync-contract.md`](../harness/layer-sync-contract.md)
 3. `pnpm smoke:all`
-4. 正式生成 → [`first-run-checklist.md`](first-run-checklist.md)

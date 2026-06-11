@@ -31,12 +31,13 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 ## 写小说时的铁律
 
 0. **每轮先 next** — `pnpm forge next stories/{id}` 决定当前 Skill；多智能体完成后 `pnpm forge handoff complete`
-1. **开书先 intake** — `pnpm forge intake questions` 多轮收 seed，`forge intake check` PASS 后才 novel-bootstrap
+1. **开书先 intake** — `pnpm forge intake questions` 多轮收 seed（含文笔字段），`forge intake check` PASS 后才 novel-bootstrap → **prose-style-architect**
 2. **先 context + manifest，再动笔** — `pnpm forge context` + `pnpm forge manifest`
 3. **只改手稿与 state** — `canon/` 须经 continuity 流程更新，禁止凭记忆覆盖
 3a. **新会话先读** `state/working/session-relay.md`（`pnpm forge relay refresh`）
-3b. **单会话≤4章正文** — 见 `writing-plan.json` · `skills/guides/session-production-limits.md`
-4. **登记册必同步** — 伏笔/钩子/爽点/微兑现/plot-debt 章后更新
+3b. **单会话≤2章正文** · **integrity 硬门禁** — `pnpm forge draft check` 须 integrity ok 才可 production handoff（见 `production-integrity-gates.md`）
+3c. **正文禁止 meta** — 登记册 id / chN / 表世界 等不得进 `manuscripts/`
+4. **登记册必同步** — 伏笔/钩子/爽点/微兑现/plot-debt/character-state-log/world-state-log/**narrative-sparks** 章后更新
 5. **章后链** — continuity-warden → persona-evolution-warden → retention-analyst → **review**
 6. **review 失败** — `forge next` 进入 `patch-cycle`；按 `action_items.delegate_skill` 修补（revision 三元组自动脚手架），≤3 轮否则 blocked
 7. **章完成** — rule-reviewer handoff（须 review PASS）→ `forge phase advance --chapter N`（写 `@novel-orchestrator` handoff；高优 session-collect 须 `author_ack` 或 `--ack-session-collect`）
@@ -46,9 +47,11 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 
 - 状态机（唯一真相源）：`docs/architecture/pipeline-state-machine.md`
 - 统一流水线：`docs/architecture/unified-pipeline.md`
-- 框架现状：`docs/ops/framework-status.md`
+- 框架现状：`docs/ops/framework-status.md`（**仅框架能力，不追踪单书进度**）
+- 单书跟框架：`docs/ops/book-framework-sync.md`
+- **生产完整性迭代**：`docs/ops/harness-integrity-iteration.md`
 - 路线图：`docs/ops/roadmap.md`
-- 正式生成清单：`docs/ops/first-run-checklist.md`
+- 用书清单：`docs/ops/first-run-checklist.md`
 - 五层联动契约：`docs/harness/layer-sync-contract.md`
 - Handoff 协议：`skills/guides/handoff-protocol.md`
 - 记忆架构：`docs/architecture/memory-system.md`

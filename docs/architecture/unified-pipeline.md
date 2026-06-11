@@ -12,7 +12,7 @@
 flowchart TB
   subgraph CREATE["① creation-chain"]
     O[novel-orchestrator] --> SI[seed-intake] --> B[novel-bootstrap]
-    B --> W[world-architect] --> C[character-forge]
+    B --> PSA[prose-style-architect] --> W[world-architect] --> C[character-forge]
     C --> CN[cast-network-weaver] --> PV[persona-voice-binder]
     PV --> P[plot-architect] --> F[foreshadow-engineer]
     F --> H[hook-manager] --> BP[batch-planner] --> ORA[retention-analyst outline]
@@ -72,7 +72,7 @@ flowchart TB
 
 | 模式 | 何时 | 加载 |
 |------|------|------|
-| auto | 默认 | manifest JIT |
+| auto | 默认 | manifest JIT（含 `prose-profile` / voice / exemplars） |
 | graph_hybrid | 多角色章 | graph 子图 + 角色卡 |
 | bm25_fallback | 图谱不足 | keyword-index |
 

@@ -22,8 +22,8 @@ pnpm forge handoff status stories/{id}        # 已完成的 Skill 交接
 
 | phase | workflow | Skill 链 |
 |-------|----------|----------|
-| ideation | `creation-chain` | seed-intake → intake check → novel-bootstrap → … |
-| worldbuilding / outlining | `creation-chain` | world → character → plot → foreshadow → hook → batch → retention |
+| ideation | `creation-chain` | seed-intake → intake check → novel-bootstrap → prose-style-architect → … |
+| worldbuilding / outlining | `creation-chain` | world → character（3 步）→ plot → foreshadow → hook → batch → retention |
 | drafting | `chapter-cycle` | context-router → production → [dialogue] → continuity → persona-evolution → retention → reviewer |
 | review_fail | `patch-cycle` | `forge review` FAIL 自动脚手架 `state/revisions/`；`forge next` 路由 delegate |
 | review_pass | advance 步 | handoff @rule-reviewer → `forge phase advance --chapter N` → **自动写本角色 handoff** |
@@ -45,9 +45,10 @@ pnpm forge handoff status stories/{id}        # 已完成的 Skill 交接
 - 不得在同一对话连续扮演 production + warden + reviewer
 - 不得连续写两章而不执行 continuity + review AFTER
 - batch-planner：单次最多 2 章 beats（`maxChaptersPerBatch`）
-- chapter-production：单次会话最多 `writing-plan.maxChaptersPerSession` 章（默认 **4**）
+- chapter-production：单次会话最多 `writing-plan.maxChaptersPerSession` 章（默认 **2**）
 - 章后/新会话：`pnpm forge relay refresh` → `state/working/session-relay.md`
-- **必须先** `forge intake check` PASS，再 novel-bootstrap
+- **必须先** `forge intake check` PASS，再 novel-bootstrap → **prose-style-architect**（`validate --task prose-style`）
+- drafting 前 `canon/style/prose-profile.yaml` 须 `status: ready`（旧书：`forge sync framework`）
 - ideation 禁止 `forge context` / `forge review`（CLI 已拦截）
 - 评审失败禁止绕过；`--force` 须 `--reason` + continuity-log
 

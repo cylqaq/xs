@@ -1,0 +1,14 @@
+# 由 @prose-style-architect 在开书链填满；status: ready 前不可写章
+version: 0
+status: pending
+genre_profile: general
+source_seed: {}
+mechanics:
+  sentence_length: mixed
+  paragraph_max_sentences: 6
+distance: neutral
+emotional_temperature: balanced
+signature_moves: []
+anti_patterns: []
+kill_list: []
+use_framework_crutch_list: true

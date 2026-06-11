@@ -25,13 +25,22 @@ function countZh(s) {
 }
 
 function fillerChars(n) {
-  const base =
-    '清晨在时间地点之中，测试主角用行动展示性格，通过选择而非旁白定义自己。' +
-    '突然，他冲出房门，却见危险逼近，小冲突升级。埋设 fs-001 视觉细节一句即可。' +
-    '章末 hk-001 强悬念断点。他猛然回头，竟没想到命运在此刻逆转。' +
-    '「你在做什么？」他说道。神秘的气息弥漫，鲜血与破碎的幻象交织。突破在即，众人目瞪口呆。';
+  const verbs = ['走', '看', '停', '闻', '推', '握', '抬', '转', '靠', '踏'];
+  const objs = ['门', '风', '影', '巷', '石', '灯', '雾', '痕', '墙', '阶'];
+  const moods = ['沉', '紧', '缓', '轻', '冷', '暖', '钝', '锐'];
+  const echoes = ['短促', '遥远', '含混', '清晰', '断续', '压低', '拖长', '突兀'];
   let s = '';
-  while (countZh(s) < n) s += base;
+  let i = 0;
+  while (countZh(s) < n) {
+    const v = verbs[i % verbs.length];
+    const o = objs[(i * 3) % objs.length];
+    const m = moods[(i * 5) % moods.length];
+    const e = echoes[(i * 7) % echoes.length];
+    s += `测试主角${v}过${o}边，${m}缓的气息在${o}上留下不可说的重量。`;
+    s += `「你在做什么？」他${i % 2 ? '低声' : '直接'}说道。`;
+    s += `${e}的回响从${o}后传来，像旧日未收尽的线头${i + 1}。`;
+    i += 1;
+  }
   return s;
 }
 
@@ -111,7 +120,7 @@ block_reason: null
     'utf8'
   );
 
-  const body = fillerChars(3100);
+  const body = fillerChars(1900);
   const ms = `---
 chapter: 1
 title: 冒烟首章
@@ -121,7 +130,11 @@ timeline_marker: day-1-morning
 
 突然，测试主角冲出房门，却没想到门外站着危险的身影。
 
+清晨在时间地点，主角用行动展示性格，通过选择而非旁白定义自己。门环留下一句视觉细节。小冲突升级，危险步步紧逼。
+
 ${body}
+
+章末强悬念断点，他猛然回头，竟没想到命运在此刻逆转。
 `;
   mkdirSync(path.join(smokeAbs, 'manuscripts/chapters'), { recursive: true });
   mkdirSync(path.join(smokeAbs, 'state/memory/chapter-summaries'), { recursive: true });
@@ -145,7 +158,7 @@ hooks_opened: []
 hooks_closed: []
 new_entities: []
 continuity_flags: []
-word_count: 3100
+word_count: 2100
 `,
     'utf8'
   );
@@ -171,9 +184,74 @@ alerts: []
 `,
     'utf8'
   );
+
+  writeFileSync(
+    path.join(smokeAbs, 'canon/style/prose-profile.yaml'),
+    `version: 1
+status: ready
+genre_profile: general
+signature_moves:
+  - 动作为主
+  - 短句推进
+anti_patterns:
+  - 空泛抒情
+kill_list: []
+use_framework_crutch_list: true
+`,
+    'utf8'
+  );
+  writeFileSync(
+    path.join(smokeAbs, 'canon/style/voice.md'),
+    `# 叙述声音
+
+- POV：third-limited（第三人称限知）
+- 时态：过去时
+- 距离感（贴近/疏离）：贴近
+- 情绪温度：中性
+- 句长倾向：混合
+- 对话风格：直接
+- 禁忌用语：
+`,
+    'utf8'
+  );
+  writeFileSync(
+    path.join(smokeAbs, 'canon/style/exemplars/positive.md'),
+    `测试主角推门而出，冷风扑面，他没有任何犹豫。
+`,
+    'utf8'
+  );
+  writeFileSync(
+    path.join(smokeAbs, 'state/checkpoints/prose-style.yaml'),
+    `completed: true
+profile_version: 1
+`,
+    'utf8'
+  );
 }
 
 function completeChapterHandoffs() {
+  const msPath = path.join(smokeAbs, 'manuscripts/chapters/ch-001.md');
+  const msBackup = existsSync(msPath) ? readFileSync(msPath, 'utf8') : null;
+  if (msBackup) rmSync(msPath);
+
+  let r = runForge(
+    'handoff',
+    'complete',
+    SMOKE_ID,
+    '--skill',
+    'context-router',
+    '--chapter',
+    '1',
+    '--workflow',
+    'chapter-cycle'
+  );
+  console.log(r.out);
+  if (r.code !== 0) {
+    console.error('FAIL: context-router handoff must succeed without manuscript (during_write_by_skill: [])');
+    process.exit(1);
+  }
+  if (msBackup) writeFileSync(msPath, msBackup, 'utf8');
+
   const chain = [
     'context-router',
     'chapter-production',

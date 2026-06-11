@@ -15,6 +15,9 @@ before:
   - "{novel_root}/canon/characters/voice-matrix.yaml"
   - "{novel_root}/registries/persona-shifts.yaml"
   - "{novel_root}/registries/appearance-log.yaml"
+  - "{novel_root}/registries/character-state-log.yaml"
+  - "{novel_root}/registries/world-state-log.yaml"
+  - "{novel_root}/registries/narrative-sparks.yaml"
   - "{novel_root}/canon/entities/graph.yaml"
 
 skills:
@@ -29,6 +32,9 @@ during_write_by_skill:
     - "{novel_root}/state/memory/summary-rolling.md"
     - "{novel_root}/registries/continuity-log.yaml"
     - "{novel_root}/registries/appearance-log.yaml"
+    - "{novel_root}/registries/character-state-log.yaml"
+    - "{novel_root}/registries/world-state-log.yaml"
+    - "{novel_root}/registries/narrative-sparks.yaml"
     - "{novel_root}/canon/timeline/master.yaml"
     - "{novel_root}/canon/characters/index.yaml"
     - "{novel_root}/registries/foreshadowing.yaml"
@@ -41,6 +47,7 @@ during_write_by_skill:
   retention-analyst:
     - "{novel_root}/state/retention/ch-{chapter_padded}.yaml"
     - "{novel_root}/state/working/session-collect.yaml"
+    - "{novel_root}/registries/narrative-sparks.yaml"
     - "{novel_root}/registries/cool-points.yaml"
     - "{novel_root}/registries/micro-payoffs.yaml"
     - "{novel_root}/registries/plot-debt.yaml"

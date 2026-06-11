@@ -16,6 +16,14 @@ description: >-
 
 仅 `state/reviews/ch-{NNN}.json` 的 `action_items[]`（`dimension`、`message`、`hint`）
 
+**integrity 维**（`meta_prose_leakage`、`anti_padding`）：
+
+- 删除正文中的登记册 id、chN、框架术语
+- 删除重复「第 N 日尽」与弧光摘要段；**禁止**用 meta 替换 meta
+- 若需增字数 → 仅扩 beats **中段**（ `@chapter-expander` 仅处理 wordcount fail）
+
+文笔维（`pov_consistency`、`forbidden_terms`、`ai_crutch_words`）对照 `canon/style/prose-profile.yaml` 修补，不另造标准。
+
 ## 产出（三元组）
 
 ```

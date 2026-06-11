@@ -9,7 +9,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 9 步 · 读 `@hook-manager` handoff · 交 `@retention-analyst`
+`creation-chain` 第 12 步 · 读 `@hook-manager` handoff · 交 `@retention-analyst`
 
 ## 规则（硬）
 
@@ -25,8 +25,9 @@ description: >-
 ## 流程
 
 1. 读 `novel.yaml` target_chapters、`state/batches/`
-2. 创建或续写下一 batch（≤2 章）
-3. beats 引用 registries 已有 fs/hk id
+2. 读 `registries/narrative-sparks.yaml` 中 `status: promoted` 且 `promotion_target: beats` 的条目
+3. 创建或续写下一 batch（≤2 章）
+4. beats 引用 registries 已有 fs/hk id；可吸收已晋升火花为 beat 注脚或新 beat 项
 
 ## 多智能体交接
 

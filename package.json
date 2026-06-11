@@ -18,9 +18,10 @@
     "smoke:bootstrap": "node harness/scripts/smoke-bootstrap.mjs",
     "smoke:revision": "node harness/scripts/smoke-revision.mjs",
     "smoke:intake": "node harness/scripts/smoke-intake.mjs",
+    "smoke:prose-style": "node harness/scripts/smoke-prose-style.mjs",
     "smoke:orchestrator": "node harness/scripts/smoke-orchestrator.mjs",
     "smoke:workflow": "node harness/scripts/smoke-workflow.mjs",
-    "smoke:all": "node harness/scripts/smoke-intake.mjs && node harness/scripts/smoke-workflow.mjs && node harness/scripts/smoke-orchestrator.mjs && node harness/scripts/smoke-bootstrap.mjs && node harness/scripts/smoke-chapter.mjs && node harness/scripts/smoke-revision.mjs"
+    "smoke:all": "node harness/scripts/smoke-intake.mjs && node harness/scripts/smoke-prose-style.mjs && node harness/scripts/smoke-workflow.mjs && node harness/scripts/smoke-orchestrator.mjs && node harness/scripts/smoke-bootstrap.mjs && node harness/scripts/smoke-chapter.mjs && node harness/scripts/smoke-revision.mjs"
   },
   "engines": {
     "node": ">=18"

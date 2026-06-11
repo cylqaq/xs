@@ -53,6 +53,10 @@ pov_tone: 第三人称限知，冷峻带黑色幽默
 theme: 记忆与身份
 audience: 男频玄幻读者
 target_chapters: 80
+prose_reference: 都市冷硬修仙，偏 noir
+sentence_rhythm: 混合
+emotional_temperature: 冷峻
+hard_bans: 玛丽苏，说明文腔
 completed: true
 `,
     'utf8'

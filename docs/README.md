@@ -19,6 +19,7 @@
 ## 运维
 
 - [`ops/roadmap.md`](ops/roadmap.md)
+- **生产完整性迭代**：[`ops/harness-integrity-iteration.md`](ops/harness-integrity-iteration.md)
 
 ## 每章 Skill 链（drafting）
 

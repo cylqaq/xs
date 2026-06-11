@@ -9,7 +9,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 6 步 · 读 `@character-forge` handoff · 交 `@persona-voice-binder`
+`creation-chain` 第 7 步 · 读 `@character-forge` handoff · 交 `@persona-voice-binder`
 
 ## 产出
 

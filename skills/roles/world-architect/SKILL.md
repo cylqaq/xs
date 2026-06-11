@@ -1,8 +1,8 @@
 ---
 name: world-architect
 description: >-
-  Builds world canon in creation-chain step 4. Isolated session after
-  novel-bootstrap. Writes canon/world and background. Supports modern-real
+  Builds world canon in creation-chain step 5. Isolated session after
+  prose-style-architect. Writes canon/world and background. Supports modern-real
   overlay + power-defect matrix.
 ---
 
@@ -10,7 +10,11 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 4 步 · 读 `@novel-bootstrap` handoff · 交 `@character-forge`
+`creation-chain` 第 5 步 · 读 `@prose-style-architect` handoff · 交 `@character-forge`
+
+## 必读
+
+- `canon/style/prose-profile.yaml`、`voice.md` — 世界描写粒度与情绪温度须一致
 
 ## 产出
 

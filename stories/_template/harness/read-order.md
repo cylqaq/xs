@@ -22,17 +22,20 @@
 
 ```bash
 pnpm forge relay refresh stories/{本书id}
+pnpm forge sync framework stories/{本书id}   # 框架升级后补缺（不覆盖已有 canon）
 pnpm forge context stories/{本书id} --chapter N
 pnpm forge manifest chapter-draft stories/{本书id} --chapter N
 ```
 
-1. state/memory/summary-rolling.md
-2. state/working/session-collect.yaml（待作者答项）
-3. canon/plot/beats/ch-{NNN}.md
-4. registries/foreshadowing.yaml、hooks.yaml（本章相关）
-5. canon/characters/voice-matrix.yaml + persona-shifts（生效项）
-6. 出场角色灵魂卡 `canon/characters/{id}.md`
+1. **canon/style/prose-profile.yaml** + **voice.md** + exemplars（须 `status: ready`）
+2. state/memory/summary-rolling.md
+3. state/working/session-collect.yaml（待作者答项）
+4. registries/narrative-sparks.yaml（待分诊/已 deferred 高潜火花）
+5. canon/plot/beats/ch-{NNN}.md
+6. registries/foreshadowing.yaml、hooks.yaml（本章相关）
+7. canon/characters/voice-matrix.yaml + persona-shifts（生效项）
+8. 出场角色灵魂卡 `canon/characters/{id}.md`
 
-**约束**：单次会话 ≤ `writing-plan.json` 的 `maxChaptersPerSession`（默认 4）章正文。
+**约束**：单次会话 ≤ `writing-plan.json` 的 `maxChaptersPerSession`（默认 2）章正文；production handoff 前须 `pnpm forge draft check` integrity ok。
 
 写后：`manifest post-chapter` → phases/06-post-chapter.md → `forge relay refresh`

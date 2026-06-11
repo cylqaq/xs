@@ -9,7 +9,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 7 步 · 读 `@cast-network-weaver` handoff · 交 `@plot-architect`
+`creation-chain` 第 8 步 · 读 `@cast-network-weaver` handoff · 交 `@plot-architect`
 
 ## 产出
 
@@ -20,7 +20,9 @@ description: >-
 
 - 所有 `core` / `major` 角色 `{id}.md`
 - `cast-roster.yaml`、`power-defects.yaml`（缺陷可驱动转变触发）
+- **`canon/style/prose-profile.yaml`** — 对白 register 须对齐叙述 distance / emotional_temperature
 - [`skills/guides/character-persona-chain.md`](../../guides/character-persona-chain.md)
+- [`skills/guides/prose-style-protocol.md`](../../guides/prose-style-protocol.md)
 
 ## 规则
 

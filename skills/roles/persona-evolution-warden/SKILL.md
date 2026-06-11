@@ -19,6 +19,7 @@ description: >-
 
 - 更新 `registries/persona-shifts.yaml`：`planned` → `active`（当章触发）
 - 必要时回写 `voice-matrix.yaml` 的 `active_overlay`（仅追加，不删基线）
+- 若转变含能力档变化 → 交叉核对/回写 `registries/character-state-log.yaml`（`category: ability`）
 
 ## 流程
 
@@ -44,3 +45,4 @@ pnpm forge handoff complete stories/{id} --skill persona-evolution-warden --chap
 ## 联动
 
 - [`skills/guides/character-persona-chain.md`](../../guides/character-persona-chain.md)
+- [`skills/guides/state-evolution-chain.md`](../../guides/state-evolution-chain.md)

@@ -17,6 +17,10 @@ steps:
     skill: chapter-production
     manifest: chapter-draft
     isolation: true
+    cli_preflight:
+      - manifest chapter-draft --chapter {chapter}
+    cli_postflight:
+      - draft check --chapter {chapter}
     reads_handoff:
       - context-router
     requires_files:
@@ -50,11 +54,14 @@ steps:
       - registries/continuity-log.yaml
       - state/memory/summary-rolling.md
       - registries/appearance-log.yaml
+      - registries/character-state-log.yaml
+      - registries/world-state-log.yaml
+      - registries/narrative-sparks.yaml
     cli_preflight:
       - manifest post-chapter --chapter {chapter}
     cli_postflight:
       - compact --chapter {chapter}
-      - validate
+      - validate --task post-chapter --chapter {chapter}
     handoff_writes:
       - state/working/handoffs/ch-{chapter_padded}-continuity-warden.yaml
 

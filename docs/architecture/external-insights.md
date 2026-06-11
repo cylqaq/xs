@@ -9,7 +9,7 @@
 | 理念 | 本框架落地 |
 |------|------------|
 | **人=总导演，AI=执行团队** | `novel-orchestrator` 不写字，用户 seed + 审阅 |
-| **三级大纲**（总纲/卷纲/章蓝图） | `canon/plot/master-outline.md` + `volumes/vol-*.md` + `beats/ch-*.md` |
+| **三级大纲**（总纲/卷纲/章蓝图） | `canon/plot/master-outline.md` + `volumes/vol-*.md` + `beats/ch-*.md` + **`outline-amendments.md`（火花补丁）** |
 | **7 Agent 分工** | 已映射见下表 |
 | **知识图谱防吃书** | `canon/entities/graph.yaml` + `graph_hybrid` |
 | **设定管理先于正文** | phases 01–03 强制在 drafting 前完成 |
@@ -26,7 +26,7 @@
 | 一致性 | continuity-warden + context-router |
 | 纠错 | patch-refiner + rule-reviewer |
 | 设定管理 | world-architect + character-forge |
-| 伏笔悬念 | foreshadow-engineer + hook-manager |
+| 伏笔悬念 | foreshadow-engineer + hook-manager + **narrative-sparks 分诊** |
 | 总控 | novel-orchestrator |
 
 ## chinese-novelist-skill（GitHub）
@@ -42,7 +42,8 @@
 | **中断续写 Phase0** | orchestrator 读 writing-plan + last_completed |
 | **字数校验 + 扩充** | `forge review` wordcount 维 + `chapter-expander` |
 | **校验修复 ≤3 轮** | 已有 review_round |
-| **跨书偏好** | `workspace/user-preferences.json` |
+| **跨书偏好** | `workspace/user-preferences.json`（默认；本书以 `canon/style/` 为准） |
+| **Style Bible / kill list** | `prose-style-architect` + `harness/style-profiles/` + review `ai_crutch_words` |
 
 ### 不照搬部分
 

@@ -32,6 +32,7 @@ BEFORE → DURING → AFTER → GATE(handoff+review) → advance
 | 文件 | workflow / manifest |
 |------|---------------------|
 | [`phases/00-bootstrap.md`](phases/00-bootstrap.md) | creation-chain · bootstrap |
+| [`phases/00b-prose-style.md`](phases/00b-prose-style.md) | creation-chain · prose-style |
 | [`phases/01-worldbuilding.md`](phases/01-worldbuilding.md) | creation-chain · worldbuilding |
 | [`phases/02-characters.md`](phases/02-characters.md) | creation-chain · characters |
 | [`phases/03-outline.md`](phases/03-outline.md) | creation-chain · outline-batch（5 Skill 步） |
@@ -47,6 +48,7 @@ BEFORE → DURING → AFTER → GATE(handoff+review) → advance
 | manifest | 阶段 | skills（须 ⊇ workflow 引用步） |
 |----------|------|--------------------------------|
 | `bootstrap` | 00 | novel-orchestrator, seed-intake, novel-bootstrap |
+| `prose-style` | 00b | prose-style-architect |
 | `worldbuilding` | 01 | world-architect |
 | `characters` | 02a | character-forge |
 | `cast-network` | 02b | cast-network-weaver |

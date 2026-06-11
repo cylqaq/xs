@@ -10,7 +10,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 5 步 · 读 `@world-architect` handoff · 交 `@cast-network-weaver`
+`creation-chain` 第 6 步 · 读 `@world-architect` handoff · 交 `@cast-network-weaver`
 
 ## 产出
 

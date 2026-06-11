@@ -5,6 +5,8 @@ skills:
   - persona-voice-binder
 
 before:
+  - "{novel_root}/canon/style/prose-profile.yaml"
+  - "{novel_root}/canon/style/voice.md"
   - "{novel_root}/canon/characters/cast-roster.yaml"
   - "{novel_root}/canon/entities/graph.yaml"
 

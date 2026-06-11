@@ -9,7 +9,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 7 步 · 读 `@plot-architect` handoff · 交 `@hook-manager`
+`creation-chain` 第 10 步 · 读 `@plot-architect` handoff · 交 `@hook-manager`
 
 ## 产出
 
@@ -20,7 +20,8 @@ description: >-
 
 - 每项唯一 `id`（fs-NNN）
 - 与 `outline.md` / 后续 beats 可交叉引用
-- **必读** `canon/world/power-defects.yaml`：`tragedy_ignition` 每项至少对应 1 条 `foreshadowing`（可引用 `tragedy:T1`）
+- 若 `canon/world/power-defects.yaml` 的 `meta.enabled: true`：`tragedy_ignition` 每项至少 1 条 `foreshadowing`（可引用 `tragedy:T1`）
+- 若 `enabled: false`（纯逻辑解谜/无超自然代价）：以 `chekhov-guns` + `open-threads` 承载谜题伏笔，不强制 tragedy 链
 - 写作阶段 plant/hint/resolved 由 continuity-warden 更新
 
 ## 多智能体交接

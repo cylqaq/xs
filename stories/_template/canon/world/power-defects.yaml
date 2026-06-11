@@ -1,0 +1,14 @@
+# 能力/代价矩阵 — 有超自然能力的书由 world-architect 填满；纯逻辑解谜可保持 enabled: false
+# 链：缺陷 → tragedy_ignition → foreshadow id → hook（enabled: true 时）
+
+meta:
+  version: 1
+  enabled: false
+  ability_cost_tone: none
+  notes: world-architect 按 seed ability_cost_tone 决定是否启用；无超自然时保持 false
+
+defect_types: []
+
+tragedy_ignition: []
+
+character_bindings: {}

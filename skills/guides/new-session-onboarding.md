@@ -32,7 +32,7 @@ pnpm forge handoff status "e:\个人\写书\{novel-id}"
 2. harness/read-order.md
 3. AGENTS.md
 再运行：pnpm forge next "e:\个人\写书\{novel-id}"
-只扮演 forge next 输出的一个 Skill，遵守 session-production-limits（单会话≤4章正文）。
+只扮演 forge next 输出的一个 Skill，遵守 session-production-limits（单会话≤2章正文；integrity 门禁见 production-integrity-gates.md）。
 ```
 
 ## 框架负责接力的组件

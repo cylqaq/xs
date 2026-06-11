@@ -23,12 +23,15 @@ description: >-
 6. 写 `state/memory/summary-rolling.md`（主线进展 + 近章摘要）
 7. `registries/continuity-log.yaml`
 8. **`registries/appearance-log.yaml`** 追加本章出场；`index.yaml` 更新 `last_seen_chapter`
-9. 新人名 → 同步 `cast-roster.yaml`（或标 `new_pending` 交 character-forge）
-10. 若 `appearance-log` 新增节点但 `graph.yaml` 缺边 → 写入 `continuity_flags` 或委派 `cast-network-weaver`
+9. **`registries/character-state-log.yaml`** 提取角色伤痕/异象/能力档/装备/体质变化（见 [`state-evolution-chain.md`](../../guides/state-evolution-chain.md)）
+10. **`registries/world-state-log.yaml`** 提取地点破坏/翻修/关键物件/局部规则变化
+11. **`registries/narrative-sparks.yaml`** 合并 `state/working/sparks/ch-{NNN}-draft.yaml` → `status: captured`
+12. 新人名 → 同步 `cast-roster.yaml`（或标 `new_pending` 交 character-forge）
+13. 若 `appearance-log` 新增节点但 `graph.yaml` 缺边 → 写入 `continuity_flags` 或委派 `cast-network-weaver`
 
-**不负责**：`cool-points.yaml` delivered（归 `@retention-analyst`）；`persona-shifts` active（归 `@persona-evolution-warden`）。
+**不负责**：`cool-points.yaml` delivered（归 `@retention-analyst`）；`persona-shifts` active（归 `@persona-evolution-warden`）；`category: ability` 与 persona 交叉核对（persona-evolution 回写 csl）。
 
-handoff postflight 自动跑 `compact --chapter N`（merge 已填 rolling 段）+ `validate`。
+handoff postflight 自动跑 `compact --chapter N`（merge 已填 rolling 段）+ `validate --task post-chapter --chapter N`（章后 scoped，非全书 validate）。
 
 ## 冲突
 

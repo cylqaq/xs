@@ -1,0 +1,40 @@
+# 言情/甜宠类叙述文笔母版
+
+genre_key: romance
+label: 言情甜宠
+aliases:
+  - 甜宠
+  - 言情
+  - 女性向
+  - 耽美
+
+mechanics:
+  sentence_length: medium
+  paragraph_max_sentences: 5
+  punctuation:
+    em_dash: allow
+    exclamation: moderate
+
+distance: close
+emotional_temperature: warm_intimate
+
+signature_moves:
+  - 情绪通过微表情、语气停顿、肢体距离传递
+  - 甜虐节拍交替，避免连续三章纯糖无张力
+  - 内心独白可略长但须绑定具体场景物件
+
+anti_patterns:
+  - 工业糖精台词（无人物声线区分）
+  - 误会全靠不解释推动
+  - 第三方恶毒女配工具人
+
+default_kill_list:
+  - 霸道总裁
+  - 邪魅一笑
+
+genre_conventions:
+  pacing: 情绪曲线优先于事件密度
+  hook_style: 关系张力或暧昧中断
+
+writing_plan_hints:
+  minWordsPerChapter: 2000

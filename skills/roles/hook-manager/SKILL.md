@@ -10,7 +10,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 8 步 · 读 `@foreshadow-engineer` handoff · 交 `@batch-planner`
+`creation-chain` 第 11 步 · 读 `@foreshadow-engineer` handoff · 交 `@batch-planner`
 
 ## 产出
 

@@ -1,0 +1,40 @@
+# 悬疑/推理类叙述文笔母版
+
+genre_key: mystery
+label: 悬疑推理
+aliases:
+  - 悬疑
+  - 推理
+  - 惊悚
+  - 刑侦
+
+mechanics:
+  sentence_length: short_to_medium
+  paragraph_max_sentences: 4
+  punctuation:
+    em_dash: sparse
+    exclamation: rare
+
+distance: close
+emotional_temperature: cold_controlled
+
+signature_moves:
+  - 信息分层：叙述只给读者当前 POV 可知
+  - 关键细节埋于动作描写，不单独划重点
+  - 章末用未解问题或反常细节收束
+
+anti_patterns:
+  - 叙述者提前泄露谜底
+  - 巧合一次性解决核心谜题
+  - 角色突然获得未铺垫的信息
+
+default_kill_list:
+  - 真相大白
+  - 一切都说得通了
+
+genre_conventions:
+  pacing: 信息密度高，动作场面克制
+  hook_style: 反常细节或断裂的时间线
+
+writing_plan_hints:
+  minWordsPerChapter: 2000

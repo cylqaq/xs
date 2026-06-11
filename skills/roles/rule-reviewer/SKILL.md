@@ -2,8 +2,9 @@
 name: rule-reviewer
 description: >-
   Runs zero-LLM forge review in Novel Forge. Mandatory cli_postflight on
-  handoff complete. Eleven dimensions with delegate_skill routing. Use in
-  chapter-cycle and revision-volume re-review steps.
+  handoff complete. Review dimensions in harness/review/rules/README.md. Use in
+  chapter-cycle and revision-volume re-review steps. Dimensions listed in
+  harness/review/rules/README.md.
 ---
 
 # Rule Reviewer（评审阶段）
@@ -23,10 +24,14 @@ pnpm forge handoff complete stories/{id} --skill rule-reviewer --chapter N
 
 **禁止调用 LLM**。只解释 JSON 并按 `action_items[].delegate_skill` 委派。
 
-## 十一维
+## 十一维 + 完整性
 
 见 `harness/review/rules/README.md` · 阈值 `harness/review/config.json`
 
-## 通过后
+**硬 FAIL（不可 handoff）**：
 
-orchestrator 执行 `pnpm forge phase advance --chapter N`（须本章 handoff 齐全）。
+- `meta_prose_leakage` — 登记册/chN/框架术语
+- `anti_padding` — 重复章末、弧光摘要凑字
+- `wordcount` tier=fail
+
+## 通过后

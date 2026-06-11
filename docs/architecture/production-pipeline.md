@@ -19,7 +19,8 @@ ideation → worldbuilding → outlining → drafting ⇄ revision → publish
 ```mermaid
 flowchart TD
   S[seed/author-intent.md] --> B[bootstrap]
-  B --> W[canon/world + background]
+  B --> ST[canon/style prose-profile]
+  ST --> W[canon/world + background]
   W --> C[canon/characters]
   C --> P[canon/plot/outline + arcs]
   P --> F[registries: foreshadowing planned]
@@ -40,6 +41,7 @@ flowchart TD
 | 阶段 | 产出目录 | 主 Skill |
 |------|----------|----------|
 | bootstrap | novel.yaml, seed→premise | seed-intake, novel-bootstrap |
+| prose-style | canon/style, writing-plan | prose-style-architect |
 | worldbuilding | canon/world, background | world-architect |
 | characters | canon/characters | character-forge |
 | outlining | plot/, registries planned | plot-architect, foreshadow-engineer |
@@ -52,6 +54,7 @@ flowchart TD
 
 | 检查点 | 条件 |
 |--------|------|
+| 文笔契约 | `prose-profile.yaml` `status: ready` + `validate --task prose-style` PASS |
 | 世界观完成 | `canon/world/rules.md` 存在且无 TBD 硬规则 |
 | 大纲完成 | 每计划章有 `beats/ch-{nnn}.md` 或明确「卷纲」 |
 | 章完成 | summary 存在 + validate 通过 + hooks 本章项已处理或延期登记 |

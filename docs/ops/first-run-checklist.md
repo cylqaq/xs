@@ -1,6 +1,7 @@
-# 正式生成验证清单
+# 用书操作清单（First Run）
 
-人类监督下用**真实 seed**跑通一本书的第一章，验证第四轮编排能力。
+人类监督下用**真实 seed**跑通一本书的第一章。  
+**说明**：本书进度不在 `framework-status.md` 记录；框架能力以 `pnpm smoke:all` 为准。
 
 ## 0. 环境
 
@@ -11,8 +12,20 @@ pnpm forge workflow validate
 
 ## 1. 开书
 
+**书目录位置**（二选一，CLI 均支持绝对路径）：
+
+| 方式 | 路径示例 | 说明 |
+|------|----------|------|
+| 仓库内 | `stories/{your-id}` | smoke / 示例默认 |
+| 仓库外 | `e:/个人/写书/{your-id}` | 私人创作目录；`forge next` / `handoff` 传绝对路径 |
+
 ```bash
-cp -r stories/_template stories/{your-id}   # 或项目约定方式复制
+# 仓库内
+cp -r stories/_template stories/{your-id}
+
+# 仓库外（PowerShell 示例）
+Copy-Item -Recurse stories/_template "e:/个人/写书/{your-id}"
+
 # 编辑 novel.yaml id/title；填写 seed/author-intent.md 核心幻想
 ```
 
@@ -25,7 +38,9 @@ pnpm forge intake questions stories/{your-id}   # ideation
 pnpm forge intake check stories/{your-id}
 ```
 
-**creation-chain 顺序**：orchestrator → seed-intake → bootstrap → world → character → plot → foreshadow → hook → batch → retention（outline）
+**creation-chain 顺序**：orchestrator → seed-intake → bootstrap → **prose-style** → world → character → plot → foreshadow → hook → batch → retention
+
+旧书若缺文笔契约：`pnpm forge sync framework stories/{your-id}` → `@prose-style-architect`
 
 ## 2. 首章连载
 

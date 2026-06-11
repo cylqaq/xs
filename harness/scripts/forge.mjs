@@ -35,6 +35,8 @@ import {
   reviewDialogueQuality,
   reviewBeatsCoverage,
   reviewCoolPointDensity,
+  reviewMetaProseLeakage,
+  reviewAntiPadding,
   updateReviewRound,
   writeContextRegistrySnapshots,
   collectAppearInCharacterFiles,
@@ -47,6 +49,9 @@ import {
   validateTaskCharacters,
   validateTaskCastNetwork,
   validateTaskPersonaVoice,
+  validateTaskProseStyle,
+  collectProseKillList,
+  syncFrameworkScaffolds,
   validateTaskOutlineBatch,
   validateTaskRebuild,
   validateTaskRevisionVolume,
@@ -64,6 +69,11 @@ import {
   assessSessionCollect,
   scaffoldRevisionRound,
   syncReadOrderOnAdvance,
+  resolveWordCountPolicy,
+  evaluateWordcount,
+  draftCheckChapter,
+  formatDraftCheckReport,
+  loadWritingPlan,
 } from './forge-lib.mjs';
 import {
   WORKFLOW_NAMES,
@@ -80,6 +90,7 @@ import {
 
 const MANIFEST_TASKS = [
   'bootstrap',
+  'prose-style',
   'worldbuilding',
   'characters',
   'outline-batch',
@@ -197,6 +208,7 @@ function cmdValidate(args) {
     if (task === 'characters') validateTaskCharacters(novelAbs, errors);
     if (task === 'cast-network') validateTaskCastNetwork(novelAbs, errors, warnings);
     if (task === 'persona-voice') validateTaskPersonaVoice(novelAbs, errors, warnings);
+    if (task === 'prose-style') validateTaskProseStyle(novelAbs, errors, warnings);
     if (task === 'outline-batch') validateTaskOutlineBatch(novelAbs, taskChapter, errors);
     if (task === 'rebuild-canon') validateTaskRebuild(novelAbs, errors);
     if (task === 'revision-volume') validateTaskRevisionVolume(novelAbs, taskChapter, errors, warnings);
@@ -341,6 +353,33 @@ ${openSection}
   console.log(`Wrote ${outPath}`);
 }
 
+function cmdDraftCheck(args) {
+  const novelRoot = args[0];
+  let chapter = null;
+  const chIdx = args.indexOf('--chapter');
+  if (chIdx !== -1) chapter = parseInt(args[chIdx + 1], 10);
+
+  if (!novelRoot || chapter == null) {
+    console.log('Usage: forge draft check <stories/novel-id> --chapter N [--json]');
+    process.exit(1);
+  }
+
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  const check = draftCheckChapter(novelAbs, chapter);
+  const asJson = args.includes('--json');
+
+  if (asJson) {
+    console.log(JSON.stringify(check, null, 2));
+  } else {
+    console.log(formatDraftCheckReport(check, novelRoot));
+  }
+
+  if (!check.exists || check.evaluation?.tier === 'fail' || (check.integrity && !check.integrity.ok)) {
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
 function cmdReview(args) {
   const novelRoot = args[0];
   let chapter = null;
@@ -416,26 +455,35 @@ function cmdReview(args) {
     reviewBeatsCoverage(novelAbs, chapter, text, results);
 
     const planPath = path.join(novelAbs, 'state/writing-plan.json');
-    let minWords = loadReviewConfig().defaultMinWordsPerChapter;
-    if (fs.existsSync(planPath)) {
-      try {
-        const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
-        if (plan.minWordsPerChapter) minWords = plan.minWordsPerChapter;
-      } catch (_) {}
-    }
-    const wc = countChineseChars(text);
-    const wcPass = wc >= minWords;
-    results.dimensions.push({ id: 'wordcount', pass: wcPass, msg: `${wc}/${minWords} 汉字` });
-    if (!wcPass) {
+    const policy = resolveWordCountPolicy(novelAbs, reviewCfg);
+    const wc = countChineseChars(text.replace(/^---[\s\S]*?---\r?\n?/, ''));
+    const wcEval = evaluateWordcount(wc, policy);
+    results.dimensions.push({
+      id: 'wordcount',
+      pass: wcEval.pass,
+      msg: wcEval.msg,
+      tier: wcEval.tier,
+    });
+    if (wcEval.tier === 'fail') {
       pushActionItem(results, {
         dimension: 'wordcount',
-        delegate_skill: 'chapter-expander',
-        message: `章字数不足（${wc}/${minWords}）`,
-        hint: '扩写感官与对话节拍，不新增剧情与角色',
+        delegate_skill: wcEval.delegate_skill,
+        message: wcEval.msg,
+        hint: wcEval.hint,
+      });
+    } else if (wcEval.tier === 'warn' && wcEval.hint) {
+      pushActionItem(results, {
+        dimension: 'wordcount',
+        delegate_skill: 'chapter-production',
+        severity: 'warn',
+        message: wcEval.msg,
+        hint: wcEval.hint,
       });
     }
 
     reviewCoolPointDensity(novelAbs, chapter, text, results);
+    reviewMetaProseLeakage(chapter, text, results);
+    reviewAntiPadding(chapter, text, results);
 
     const povFm = text.match(/^pov:\s*(.+)$/m)?.[1]?.trim();
     const voicePov = loadText(path.join(novelAbs, 'canon/style/voice.md'));
@@ -466,11 +514,29 @@ function cmdReview(args) {
     } else {
       results.dimensions.push({ id: 'forbidden_terms', pass: true, msg: 'ok' });
     }
+
+    const killList = collectProseKillList(novelAbs);
+    const crutchHit = killList.find((t) => t && text.includes(t));
+    if (crutchHit) {
+      results.dimensions.push({ id: 'ai_crutch_words', pass: false, msg: crutchHit });
+      pushActionItem(results, {
+        dimension: 'ai_crutch_words',
+        delegate_skill: 'patch-refiner',
+        message: `含 AI 套话/禁用词：${crutchHit}`,
+        hint: '按 prose-profile.kill_list 与框架套话表替换为具体描写',
+      });
+    } else {
+      results.dimensions.push({ id: 'ai_crutch_words', pass: true, msg: 'ok' });
+    }
   }
 
   const fsContent = loadText(path.join(novelAbs, 'registries/foreshadowing.yaml')) || '';
-  const overdue = [...fsContent.matchAll(/plant_chapter:\s*(\d+)[\s\S]*?status:\s*planned/g)]
-    .filter((m) => parseInt(m[1], 10) < chapter).length;
+  const fsBlocks = [...fsContent.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\nitems:|$)/g)].map((m) => m[2]);
+  const overdue = fsBlocks.filter((b) => {
+    const plant = parseInt(b.match(/plant_chapter:\s*(\d+)/)?.[1] || '0', 10);
+    const status = b.match(/status:\s*(\S+)/)?.[1];
+    return status === 'planned' && plant < chapter;
+  }).length;
   results.dimensions.push({ id: 'foreshadow_debt', pass: overdue === 0, msg: `overdue_planned=${overdue}` });
   if (overdue) {
     pushActionItem(results, {
@@ -1049,6 +1115,13 @@ switch (command) {
   case 'review':
     cmdReview(args);
     break;
+  case 'draft':
+    if (args[0] === 'check') cmdDraftCheck(args.slice(1));
+    else {
+      console.log('Usage: forge draft check <stories/novel-id> --chapter N');
+      process.exit(1);
+    }
+    break;
   case 'context':
     cmdContext(args);
     break;
@@ -1076,6 +1149,9 @@ switch (command) {
   case 'relay':
     cmdRelay(args);
     break;
+  case 'sync':
+    cmdSync(args);
+    break;
   default:
     console.log(`Novel Forge CLI
 
@@ -1084,6 +1160,7 @@ Commands:
   validate <stories/id> [--strict] [--task TASK] [--chapter N]
   compact <stories/id> [--chapter N]
   review <stories/id> --chapter N
+  draft check <stories/id> --chapter N [--json]   Pre-handoff wordcount tier (hard fail only)
   context <stories/id> [--chapter N]
   context-index <stories/id>
   phase sync|advance|set <stories/id> [options]
@@ -1093,5 +1170,41 @@ Commands:
   handoff complete|status <stories/id>         Skill isolation handoff protocol
   workflow validate                            Check workflow steps vs manifest skills
   relay refresh <stories/id>                   Regenerate state/working/session-relay.md
+  sync framework <stories/id>                  Scaffold missing framework files + list gaps
 `);
+}
+
+function cmdSync(args) {
+  const sub = args[0];
+  const novelRoot = args[1] && args[1].startsWith('stories/') ? args[1] : resolveNovelRootFromArgs(args, { skipTokens: ['framework'] });
+  if (sub !== 'framework' || !novelRoot) {
+    console.log('Usage: forge sync framework <stories/novel-id>');
+    process.exit(1);
+  }
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  if (!fs.existsSync(path.join(novelAbs, 'novel.yaml'))) {
+    console.error('missing novel.yaml');
+    process.exit(1);
+  }
+  const { copied, existing, styleReady, agentTasks } = syncFrameworkScaffolds(novelAbs, { copyMissing: true });
+  console.log(`# Sync framework | ${novelRoot}\n`);
+  if (copied.length) {
+    console.log('## Copied scaffolds from _template');
+    for (const f of copied) console.log(`+ ${f}`);
+  } else {
+    console.log('## Scaffolds: all framework paths present');
+  }
+  if (existing.length) {
+    console.log('\n## Already present');
+    for (const f of existing) console.log(`  ${f}`);
+  }
+  console.log(`\n## Prose style ready: ${styleReady.ready ? 'YES' : 'NO'}`);
+  if (!styleReady.ready) {
+    for (const g of styleReady.gaps) console.log(`- ${g}`);
+  }
+  if (agentTasks.length) {
+    console.log('\n## Agent follow-up');
+    for (const t of agentTasks) console.log(`→ ${t}`);
+  }
+  process.exit(styleReady.ready ? 0 : 2);
 }

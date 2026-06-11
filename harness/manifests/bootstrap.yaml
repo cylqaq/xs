@@ -29,6 +29,19 @@ during_write:
   - "{novel_root}/state/context-mode.yaml"
   - "{novel_root}/state/checkpoints/bootstrap.yaml"
 
+during_write_by_skill:
+  novel-orchestrator: []
+  seed-intake:
+    - "{novel_root}/seed/layer1-core.yaml"
+    - "{novel_root}/seed/layer2-customize.yaml"
+    - "{novel_root}/seed/layer3-title.md"
+    - "{novel_root}/seed/intake-status.yaml"
+  novel-bootstrap:
+    - "{novel_root}/canon/background/premise.md"
+    - "{novel_root}/registries/plot-debt.yaml"
+    - "{novel_root}/state/context-mode.yaml"
+    - "{novel_root}/state/checkpoints/bootstrap.yaml"
+
 after_must_update:
   - "{novel_root}/state/phase.yaml"
   - "{novel_root}/novel.yaml"

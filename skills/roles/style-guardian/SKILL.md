@@ -13,9 +13,10 @@ description: >-
 
 ## 检查
 
+- `canon/style/prose-profile.yaml` — 与 `forge review` 同一真相源
 - `canon/style/voice.md` — POV、时态
 - `canon/style/glossary.md` — 专有名词
-- 与 `forge review` forbidden_terms 一致
+- 与 `forge review` 的 `forbidden_terms`、`ai_crutch_words` 一致
 
 ## 产出
 

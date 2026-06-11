@@ -6,6 +6,8 @@ before:
   - "{novel_root}/state/phase.yaml"
   - "{novel_root}/state/memory/summary-rolling.md"
   - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/style/prose-profile.yaml"
+  - "{novel_root}/canon/style/exemplars/positive.md"
   - "{novel_root}/canon/background/premise.md"
   - "{novel_root}/canon/plot/beats/ch-{chapter_padded}.md"
   - "{novel_root}/registries/foreshadowing.yaml"
@@ -17,6 +19,10 @@ before:
   - "{novel_root}/canon/characters/voice-matrix.yaml"
   - "{novel_root}/registries/persona-shifts.yaml"
   - "{novel_root}/registries/appearance-log.yaml"
+  - "{novel_root}/registries/character-state-log.yaml"
+  - "{novel_root}/registries/world-state-log.yaml"
+  - "{novel_root}/registries/narrative-sparks.yaml"
+  - "{novel_root}/canon/plot/outline-amendments.md"
 
 skills:
   - context-router
@@ -28,6 +34,13 @@ optional_if_exists:
 
 during_write:
   - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+
+during_write_by_skill:
+  context-router: []
+  chapter-production:
+    - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+  dialogue-craftsman:
+    - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
 
 after_must_update:
   - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"

@@ -1,6 +1,6 @@
 # 开书创建链 — 每 Skill 隔离会话，handoff 后方可进入下一步
 workflow: creation-chain
-description: ideation → worldbuilding → characters（3 Skill）→ outline（5 Skill）→ drafting 入口
+description: ideation → prose-style → worldbuilding → characters（3 Skill）→ outline（5 Skill）→ drafting 入口
 
 steps:
   - id: orchestrate-open
@@ -40,12 +40,26 @@ steps:
     handoff_writes:
       - state/working/handoffs/creation-novel-bootstrap.yaml
 
+  - id: prose-style
+    skill: prose-style-architect
+    manifest: prose-style
+    isolation: true
+    reads_handoff:
+      - novel-bootstrap
+    requires_files:
+      - canon/style/prose-profile.yaml
+      - canon/style/voice.md
+    cli_postflight:
+      - validate --task prose-style
+    handoff_writes:
+      - state/working/handoffs/creation-prose-style-architect.yaml
+
   - id: world
     skill: world-architect
     manifest: worldbuilding
     isolation: true
     reads_handoff:
-      - novel-bootstrap
+      - prose-style-architect
     requires_files:
       - canon/world/overview.md
       - canon/world/rules.md

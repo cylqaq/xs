@@ -15,6 +15,7 @@ import {
   personaShiftTriggersForChapter,
   getManifestSkillWrites,
   assessSessionCollect,
+  draftCheckChapter,
 } from './forge-lib.mjs';
 
 const FORGE = path.join(ROOT, 'harness/scripts/forge.mjs');
@@ -284,6 +285,7 @@ export function stepShouldAutoSkip(novelAbs, step, chapter) {
 
 export function ensureAutoSkippedHandoff(novelAbs, step, chapter, workflowName) {
   if (!stepShouldAutoSkip(novelAbs, step, chapter)) return false;
+  if (!stepHandoffComplete(novelAbs, step, chapter, workflowName)) return false;
   const own = readHandoff(novelAbs, step.skill, chapter);
   if (own?.complete) return true;
 
@@ -675,6 +677,9 @@ function injectNovelRoot(novelRoot, cmd) {
   if (parts[0] === 'intake') {
     return ['intake', parts[1] || 'check', novelRoot, ...parts.slice(2)];
   }
+  if (parts[0] === 'draft' && parts[1] === 'check') {
+    return ['draft', 'check', novelRoot, ...parts.slice(2)];
+  }
   if (parts[0] === 'manifest') {
     return ['manifest', parts[1], novelRoot, ...parts.slice(2)];
   }
@@ -684,14 +689,18 @@ function injectNovelRoot(novelRoot, cmd) {
   return [parts[0], novelRoot, ...parts.slice(1)];
 }
 
-export function runCliPreflight(novelRoot, commands) {
+export function runCliPreflight(novelRoot, commands, { label = 'postflight' } = {}) {
   const results = [];
   for (const cmd of commands) {
+    if (label) console.error(`[forge handoff ${label}] pnpm forge ${cmd}`);
     const args = injectNovelRoot(novelRoot, cmd);
     const r = spawnSync(process.execPath, [FORGE, ...args], {
       cwd: ROOT,
       encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
     });
+    if (label && r.stdout) process.stdout.write(r.stdout);
+    if (label && r.stderr) process.stderr.write(r.stderr);
     results.push({ cmd, code: r.status ?? 1, ok: (r.status ?? 1) === 0 });
     if (r.status !== 0) return { ok: false, results };
   }
@@ -780,6 +789,25 @@ export function completeHandoff(novelAbs, novelRoot, opts) {
       ok: false,
       error: `missing artifacts: ${missingArts.map((a) => a.path).join(', ')}`,
     };
+  }
+
+  if (step.skill === 'chapter-production') {
+    const dc = draftCheckChapter(novelAbs, ch || 1);
+    if (!dc.exists) {
+      return { ok: false, error: `missing manuscript for chapter-production handoff` };
+    }
+    if (dc.evaluation?.tier === 'fail') {
+      return {
+        ok: false,
+        error: `draft check fail: ${dc.evaluation.msg} — run forge draft check --chapter ${ch}`,
+      };
+    }
+    if (dc.integrity && !dc.integrity.ok) {
+      return {
+        ok: false,
+        error: `prose integrity gate: ${dc.integrity.errors.slice(0, 3).join('; ')}`,
+      };
+    }
   }
 
   let postflightPassed = [];

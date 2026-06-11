@@ -35,8 +35,16 @@ description: >-
 - `persona-shifts.yaml` 当前生效 `voice_delta`
 - `cast-roster.yaml` 社会身份一句
 - `appearance-log` 该章 `characters_present`（若已存在）
+- `character-state-log.yaml` 本章出场角色的 `status: active` 条目
+- `world-state-log.yaml` 本章 beats/locations 相关 `status: active` 条目
 
-见 [`skills/guides/character-persona-chain.md`](../../guides/character-persona-chain.md)
+## 文笔 JIT（必含 · 免疫压缩）
+
+- `canon/style/prose-profile.yaml`
+- `canon/style/voice.md`
+- `canon/style/exemplars/positive.md`（若已填）
+
+见 [`skills/guides/prose-style-protocol.md`](../../guides/prose-style-protocol.md)、[`character-persona-chain.md`](../../guides/character-persona-chain.md)、[`state-evolution-chain.md`](../../guides/state-evolution-chain.md)
 
 ## 多智能体交接
 

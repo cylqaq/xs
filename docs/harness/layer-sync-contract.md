@@ -79,6 +79,8 @@ pnpm smoke:all                  # L2 handoff + CLI 闭环
 - [ ] `harness/workflows/README.md` 条件步说明仍准确
 - [ ] smoke 覆盖新行为（或扩 `smoke-*.mjs`）
 - [ ] `docs/ops/framework-status.md` 能力矩阵
+- [ ] `docs/ops/harness-integrity-iteration.md` 与实现一致
+- [ ] `skills/guides/production-integrity-gates.md` 与 review 维一致
 - [ ] 本文「五层」描述仍成立
 
 ### 改了 `docs/architecture/pipeline-state-machine.md`
@@ -91,7 +93,7 @@ pnpm smoke:all                  # L2 handoff + CLI 闭环
 
 | workflow | YAML | 主 manifest | 主 phase 文档 | Skill 索引 |
 |----------|------|-------------|---------------|------------|
-| creation-chain | `creation-chain.yaml` | bootstrap / worldbuilding / characters / outline-batch | 00–03 | `skills/README.md` 创建链（12 步） |
+| creation-chain | `creation-chain.yaml` | bootstrap / prose-style / worldbuilding / characters / outline-batch | 00–00b–03 | `skills/README.md` 创建链（13 步） |
 | chapter-cycle | `chapter-cycle.yaml` | chapter-draft / post-chapter | 05–06 | 连载链（8 步） |
 | patch-cycle | `patch-cycle.yaml` | —（读 reviews） | 07 | patch-refiner 等 |
 | revision-volume | `revision-volume.yaml` | revision-volume | 07 | 卷精修 |

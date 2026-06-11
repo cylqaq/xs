@@ -1,0 +1,40 @@
+# 玄幻/修仙类叙述文笔母版
+
+genre_key: xuanhuan
+label: 玄幻修仙
+aliases:
+  - 都市修仙
+  - 仙侠
+  - 玄幻
+
+mechanics:
+  sentence_length: mixed
+  paragraph_max_sentences: 5
+  punctuation:
+    em_dash: allow
+    exclamation: sparse
+
+distance: close
+emotional_temperature: tense_heroic
+
+signature_moves:
+  - 战斗/突破场景短句密集，日常可略放缓
+  - 能力代价与身体感受绑定描写
+  - 爽点前后留白，不连发三段以上排比
+
+anti_patterns:
+  - 境界名词连读无画面（纯等级播报）
+  - 每章必突破/必获宝
+  - 反派降智送经验
+
+default_kill_list:
+  - 恐怖如斯
+  - 此子恐怖如斯
+  - 蝼蚁
+
+genre_conventions:
+  pacing: 张弛交替，大爽点前压情绪
+  hook_style: 危机或异象开场
+
+writing_plan_hints:
+  minWordsPerChapter: 2000

@@ -9,7 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(__dirname, '../..');
 
 const REVIEW_CONFIG_DEFAULTS = {
-  defaultMinWordsPerChapter: 3000,
+  defaultMinWordsPerChapter: 2000,
+  defaultMinWordsHardFail: 1600,
   beatsCoverageRatio: 0.7,
   openingHookMaxChapter: 3,
   dialogueMinSnippets: 2,
@@ -49,8 +50,26 @@ export function loadTextSafe(filePath) {
 }
 
 export function parseYamlScalar(text, key) {
-  const m = text?.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
-  return m ? m[1].trim().replace(/^["']|["']$/g, '') : null;
+  if (!text) return null;
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(new RegExp(`^${key}:\\s*(.*)$`));
+    if (!m) continue;
+    const head = m[1].trim();
+    if (head === '>-' || head === '|' || head === '|-' || head === '>') {
+      const parts = [];
+      for (let j = i + 1; j < lines.length; j++) {
+        const line = lines[j];
+        if (/^\S/.test(line)) break;
+        const t = line.trim();
+        if (t) parts.push(t);
+      }
+      return parts.join(' ').replace(/^["']|["']$/g, '');
+    }
+    if (!head) return null;
+    return head.replace(/^["']|["']$/g, '');
+  }
+  return null;
 }
 
 export function parseYamlInt(text, key) {
@@ -203,7 +222,7 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
       .replaceAll('{chapter_padded}', padded)
       .replaceAll('{prev_chapter_padded}', prev);
 
-  const lines = raw.split('\n');
+  const lines = raw.split(/\r?\n/);
   const sections = {
     before: [],
     optional: [],
@@ -250,8 +269,12 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
     } else if (line.startsWith('skills:')) {
       current = 'skills';
       duringSkillKey = null;
+    } else if (current === 'during_by_skill' && line.match(/^  (\S+):\s*\[\]\s*$/)) {
+      duringSkillKey = line.match(/^  (\S+):/)[1];
+      sections.duringBySkill[duringSkillKey] = [];
     } else if (current === 'during_by_skill' && line.match(/^  (\S+):$/)) {
       duringSkillKey = line.trim().slice(0, -1);
+      if (!sections.duringBySkill[duringSkillKey]) sections.duringBySkill[duringSkillKey] = [];
     } else if (line.trim().startsWith('- ') && current) {
       const item = subst(line.trim().slice(2).replace(/^["']|["']$/g, ''));
       if (current === 'during_by_skill' && duringSkillKey) {
@@ -270,8 +293,10 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
 /** Relative write paths for a skill within a manifest (falls back to union during_write). */
 export function getManifestSkillWrites(manifestName, skill, novelRoot, chapter) {
   const { sections } = resolveManifest(manifestName, novelRoot, chapter);
-  const bySkill = sections.duringBySkill?.[skill];
-  if (bySkill?.length) return bySkill;
+  // Explicit during_write_by_skill entry (even []) must not fall back to during_write union.
+  if (sections.duringBySkill && Object.prototype.hasOwnProperty.call(sections.duringBySkill, skill)) {
+    return sections.duringBySkill[skill];
+  }
   if (!sections.during.length) return [];
   const novelAbs = path.resolve(ROOT, novelRoot);
   const prefix = novelAbs.replace(/\\/g, '/') + '/';
@@ -343,6 +368,134 @@ export function pushActionItem(results, item) {
 
 export function countChineseChars(text) {
   return (text.match(/[\u4e00-\u9fff]/g) || []).length;
+}
+
+/** 字数策略：目标 band + 硬下限（见 session-production-limits.md） */
+export function resolveWordCountPolicy(novelAbs, reviewCfg = null) {
+  const cfg = reviewCfg || loadReviewConfig();
+  const plan = loadWritingPlan(novelAbs);
+  const targetMin = plan.minWordsPerChapter ?? cfg.defaultMinWordsPerChapter ?? 2000;
+  const targetMax = plan.maxWordsPerChapter ?? 6000;
+  const hardFail =
+    plan.minWordsHardFail ??
+    cfg.defaultMinWordsHardFail ??
+    Math.max(1800, targetMin - 800);
+  return { targetMin, targetMax, hardFail };
+}
+
+/**
+ * 字数 tier：仅 hardFail 以下 review FAIL；targetMin 以下为 warn（仍 PASS）
+ * 避免 2984/3000 边界 thrashing；严重欠幅才交 chapter-expander
+ */
+export function evaluateWordcount(wc, policy) {
+  const { targetMin, targetMax, hardFail } = policy;
+  if (wc < hardFail) {
+    const deficit = targetMin - wc;
+    return {
+      pass: false,
+      tier: 'fail',
+      msg: `${wc}/${targetMin} 汉字（低于硬下限 ${hardFail}）`,
+      delegate_skill: 'chapter-expander',
+      hint: `按 beats 整段扩写感官/对话，一次建议 ≥${Math.max(300, deficit + 200)} 字；禁止改结尾凑字`,
+    };
+  }
+  if (wc < targetMin) {
+    const deficit = targetMin - wc;
+    return {
+      pass: true,
+      tier: 'warn',
+      msg: `${wc}/${targetMin} 汉字（未达目标 band ${targetMin}–${targetMax}，可后续扩写）`,
+      delegate_skill: null,
+      hint: deficit > 0 ? `可选扩写约 ${deficit} 字；优先增 beat 段落，勿凑单行` : null,
+    };
+  }
+  if (wc > targetMax) {
+    return {
+      pass: true,
+      tier: 'long',
+      msg: `${wc}/${targetMin} 汉字（超过软上限 ${targetMax}）`,
+      delegate_skill: null,
+      hint: '可选精简重复段落',
+    };
+  }
+  return {
+    pass: true,
+    tier: 'ok',
+    msg: `${wc}/${targetMin} 汉字`,
+    delegate_skill: null,
+    hint: null,
+  };
+}
+
+/** production 前字数预检（不阻断 handoff，仅输出 tier） */
+export function draftCheckChapter(novelAbs, chapter) {
+  const padded = padChapter(chapter);
+  const msPath = path.join(novelAbs, `manuscripts/chapters/ch-${padded}.md`);
+  const text = loadTextSafe(msPath);
+  const policy = resolveWordCountPolicy(novelAbs);
+  if (!text) {
+    return {
+      chapter,
+      padded,
+      manuscript: `manuscripts/chapters/ch-${padded}.md`,
+      exists: false,
+      chars: 0,
+      policy,
+      evaluation: null,
+      beats_path: `canon/plot/beats/ch-${padded}.md`,
+      beats_exists: fs.existsSync(path.join(novelAbs, `canon/plot/beats/ch-${padded}.md`)),
+    };
+  }
+  const body = text.replace(/^---[\s\S]*?---\r?\n?/, '');
+  const chars = countChineseChars(body);
+  const evaluation = evaluateWordcount(chars, policy);
+  const integrity = scanProseIntegrity(body);
+  return {
+    chapter,
+    padded,
+    manuscript: `manuscripts/chapters/ch-${padded}.md`,
+    exists: true,
+    chars,
+    policy,
+    evaluation,
+    integrity,
+    beats_path: `canon/plot/beats/ch-${padded}.md`,
+    beats_exists: fs.existsSync(path.join(novelAbs, `canon/plot/beats/ch-${padded}.md`)),
+  };
+}
+
+export function formatDraftCheckReport(check, novelRoot) {
+  const lines = [`# Draft check | ch-${check.padded} | ${novelRoot}`, ''];
+  if (!check.exists) {
+    lines.push(`✗ missing ${check.manuscript}`);
+    if (!check.beats_exists) lines.push(`✗ missing ${check.beats_path}`);
+    return lines.join('\n');
+  }
+  const ev = check.evaluation;
+  const icon = ev.tier === 'fail' ? '✗' : ev.tier === 'warn' ? '⚠' : '✓';
+  lines.push(`${icon} wordcount: ${ev.msg}`);
+  lines.push(`  tier: ${ev.tier} | hardFail: ${check.policy.hardFail} | target: ${check.policy.targetMin}–${check.policy.targetMax}`);
+  if (ev.hint) lines.push(`  hint: ${ev.hint}`);
+  if (check.integrity) {
+    const iIcon = check.integrity.ok ? '✓' : '✗';
+    lines.push(
+      `${iIcon} integrity: ${check.integrity.ok ? 'ok' : check.integrity.errors.slice(0, 3).join('; ')}`
+    );
+    if (!check.integrity.ok) {
+      lines.push('  → 禁止 handoff：删 meta/重复章末，按 beats 扩写中段');
+    }
+  }
+  if (ev.tier === 'fail') {
+    lines.push('', '→ patch-cycle / @chapter-expander（按 beats 扩段，≤2 轮）');
+  } else if (!check.integrity?.ok) {
+    lines.push('', '→ patch-cycle / @patch-refiner（integrity 硬门禁）');
+  } else if (ev.tier === 'warn') {
+    lines.push('', '→ 可 handoff；未达目标 band 时优先扩 beat 段，禁止凑单行/章末堆字');
+  } else {
+    lines.push('', '→ 可 handoff production');
+  }
+  if (!check.beats_exists) lines.push(`⚠ missing ${check.beats_path} — 先 batch-planner`);
+  return lines.join('\n');
 }
 
 export function parseSummaryYaml(text) {
@@ -432,16 +585,21 @@ export function collectAppearInCharacterFiles(novelAbs, chapter, beatsCharIds = 
 
 const OPEN_FORESHADOW = new Set(['planned', 'planted', 'hinted']);
 const OPEN_HOOK = new Set(['open', 'partially_addressed']);
+const ACTIVE_STATE = new Set(['active']);
 
-function filterYamlItems(yamlText, predicate) {
-  if (!yamlText?.trim()) return 'items: []\n';
-  const blocks = [...yamlText.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\nitems:|\n#|$)/g)].map((m) => m[2]);
+function filterYamlEntries(yamlText, listKey, predicate) {
+  if (!yamlText?.trim()) return `${listKey}: []\n`;
+  const blocks = [...yamlText.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\n\w+:|$)/g)].map((m) => m[2]);
   const kept = blocks.filter((b) => {
     const id = b.match(/id:\s*(\S+)/)?.[1];
     return id && predicate(b);
   });
-  const header = yamlText.match(/^[\s\S]*?items:\s*\n/)?.[0] || 'items:\n';
+  const header = yamlText.match(new RegExp(`^[\\s\\S]*?${listKey}:\\s*\\n`))?.[0] || `${listKey}:\n`;
   return header + (kept.length ? kept.join('\n') + '\n' : '');
+}
+
+function filterYamlItems(yamlText, predicate) {
+  return filterYamlEntries(yamlText, 'items', predicate);
 }
 
 export function writeContextRegistrySnapshots(novelAbs, chapter) {
@@ -483,6 +641,43 @@ export function writeContextRegistrySnapshots(novelAbs, chapter) {
     const snap = path.join(snapDir, 'open-threads-active.yaml');
     fs.writeFileSync(snap, filtered, 'utf8');
     out[otPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+  }
+
+  const cslPath = path.join(novelAbs, 'registries/character-state-log.yaml');
+  const cslText = loadText(cslPath);
+  if (cslText) {
+    const filtered = filterYamlEntries(cslText, 'entries', (b) => {
+      const status = b.match(/status:\s*(\S+)/)?.[1];
+      return status && ACTIVE_STATE.has(status);
+    });
+    const snap = path.join(snapDir, 'character-state-active.yaml');
+    fs.writeFileSync(snap, filtered, 'utf8');
+    out[cslPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+  }
+
+  const wslPath = path.join(novelAbs, 'registries/world-state-log.yaml');
+  const wslText = loadText(wslPath);
+  if (wslText) {
+    const filtered = filterYamlEntries(wslText, 'entries', (b) => {
+      const status = b.match(/status:\s*(\S+)/)?.[1];
+      return status && ACTIVE_STATE.has(status);
+    });
+    const snap = path.join(snapDir, 'world-state-active.yaml');
+    fs.writeFileSync(snap, filtered, 'utf8');
+    out[wslPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+  }
+
+  const nkPath = path.join(novelAbs, 'registries/narrative-sparks.yaml');
+  const nkText = loadText(nkPath);
+  if (nkText) {
+    const OPEN_SPARK = new Set(['captured', 'triaged', 'deferred']);
+    const filtered = filterYamlEntries(nkText, 'sparks', (b) => {
+      const status = b.match(/status:\s*(\S+)/)?.[1];
+      return status && OPEN_SPARK.has(status);
+    });
+    const snap = path.join(snapDir, 'narrative-sparks-open.yaml');
+    fs.writeFileSync(snap, filtered, 'utf8');
+    out[nkPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
   }
 
   return out;
@@ -595,6 +790,9 @@ export function assessSeedIntake(novelAbs, writeStatus = false) {
     fieldFilled(l2, 'pov_tone', 4) &&
     fieldFilled(l2, 'theme', 4) &&
     fieldFilled(l2, 'audience', 2) &&
+    fieldFilled(l2, 'prose_reference', 4) &&
+    fieldFilled(l2, 'sentence_rhythm', 2) &&
+    fieldFilled(l2, 'emotional_temperature', 2) &&
     (parseYamlInt(l2, 'target_chapters') ?? 0) >= 10 &&
     layerCompleted(l2);
   if (l2Ok) layers.l2 = 'complete';
@@ -604,6 +802,9 @@ export function assessSeedIntake(novelAbs, writeStatus = false) {
     if (!fieldFilled(l2, 'pov_tone', 4)) gaps.push('layer2: pov_tone 过短');
     if (!fieldFilled(l2, 'theme', 4)) gaps.push('layer2: theme 过短');
     if (!fieldFilled(l2, 'audience', 2)) gaps.push('layer2: audience 未填');
+    if (!fieldFilled(l2, 'prose_reference', 4)) gaps.push('layer2: prose_reference 过短');
+    if (!fieldFilled(l2, 'sentence_rhythm', 2)) gaps.push('layer2: sentence_rhythm 未填');
+    if (!fieldFilled(l2, 'emotional_temperature', 2)) gaps.push('layer2: emotional_temperature 未填');
     if ((parseYamlInt(l2, 'target_chapters') ?? 0) < 10) gaps.push('layer2: target_chapters < 10');
     if (!layerCompleted(l2)) gaps.push('layer2: completed 须为 true');
   }
@@ -702,6 +903,153 @@ export function gateLeaveIdeation(novelAbs, errors) {
 
 export const DRAFTING_PHASES = new Set(['drafting', 'revision', 'outlining']);
 
+const STYLE_PROFILE_DIR = path.join(ROOT, 'harness/style-profiles');
+const FRAMEWORK_SCAFFOLD_PATHS = [
+  'canon/style/prose-profile.yaml',
+  'canon/style/exemplars/positive.md',
+  'canon/style/exemplars/negative.md',
+  'state/checkpoints/prose-style.yaml',
+];
+
+export function countYamlListItems(text, key) {
+  if (!text) return 0;
+  const lines = text.split('\n');
+  let inBlock = false;
+  let count = 0;
+  for (const line of lines) {
+    if (new RegExp(`^${key}:`).test(line)) {
+      inBlock = true;
+      if (/:\s*\[\s*\]/.test(line)) return 0;
+      continue;
+    }
+    if (inBlock) {
+      if (/^\s+-\s+/.test(line)) count++;
+      else if (/^\S/.test(line)) break;
+    }
+  }
+  return count;
+}
+
+export function loadFrameworkCrutchWords() {
+  const p = path.join(STYLE_PROFILE_DIR, 'ai-crutch-words.yaml');
+  const text = loadText(p) || '';
+  return [...text.matchAll(/^\s+-\s+(.+)$/gm)].map((m) => m[1].trim()).filter(Boolean);
+}
+
+export function resolveGenreProfileKey(seedGenreText, novelGenre) {
+  const hay = `${seedGenreText || ''} ${novelGenre || ''}`.toLowerCase();
+  const profiles = ['survival-puzzle', 'xuanhuan', 'mystery', 'romance', 'general'];
+  for (const key of profiles) {
+    if (key === 'general') continue;
+    const raw = loadText(path.join(STYLE_PROFILE_DIR, `${key}.yaml`)) || '';
+    const aliasBlock = raw.match(/^aliases:\s*\n([\s\S]*?)(?=^\S|$)/m)?.[1] || '';
+    const aliases = [...aliasBlock.matchAll(/^\s+-\s+(.+)$/gm)].map((m) => m[1].trim());
+    const label = raw.match(/^label:\s*(.+)$/m)?.[1]?.trim() || '';
+    const keys = [key, label, ...aliases].filter(Boolean);
+    if (keys.some((k) => hay.includes(String(k).toLowerCase()))) return key;
+  }
+  if (/无限流|生存游戏|解谜|规则怪谈|大逃杀|survival/.test(hay)) return 'survival-puzzle';
+  if (/玄幻|修仙|仙侠|xuanhuan/.test(hay)) return 'xuanhuan';
+  if (/悬疑|推理|惊悚|刑侦|mystery/.test(hay)) return 'mystery';
+  if (/甜宠|言情|女性向|耽美|romance/.test(hay)) return 'romance';
+  return novelGenre && fs.existsSync(path.join(STYLE_PROFILE_DIR, `${novelGenre}.yaml`))
+    ? novelGenre
+    : 'general';
+}
+
+export function loadProseProfileText(novelAbs) {
+  return loadText(path.join(novelAbs, 'canon/style/prose-profile.yaml')) || '';
+}
+
+export function assessProseStyleReadiness(novelAbs) {
+  const gaps = [];
+  const profilePath = path.join(novelAbs, 'canon/style/prose-profile.yaml');
+  const voicePath = path.join(novelAbs, 'canon/style/voice.md');
+  const checkpointPath = path.join(novelAbs, 'state/checkpoints/prose-style.yaml');
+
+  if (!fs.existsSync(profilePath)) {
+    gaps.push('missing canon/style/prose-profile.yaml — run: forge sync framework');
+    return { ready: false, gaps };
+  }
+  const profile = loadProseProfileText(novelAbs);
+  const status = parseYamlScalar(profile, 'status');
+  if (status !== 'ready') gaps.push('prose-profile status 须为 ready（@prose-style-architect）');
+  const version = parseYamlInt(profile, 'version') ?? 0;
+  if (version < 1) gaps.push('prose-profile version 须 ≥ 1');
+  if (countYamlListItems(profile, 'signature_moves') < 2) gaps.push('signature_moves 须 ≥ 2 条');
+  if (countYamlListItems(profile, 'anti_patterns') < 1) gaps.push('anti_patterns 须 ≥ 1 条');
+
+  if (!fs.existsSync(voicePath)) gaps.push('missing canon/style/voice.md');
+  else {
+    const voice = loadText(voicePath) || '';
+    const pov = voice.match(/^-?\s*POV[：:][ \t]*([^\n\r]*)/m)?.[1]?.trim();
+    if (!pov || pov.length < 2 || pov === '：' || pov === ':') gaps.push('voice.md POV 未填写');
+  }
+
+  const posEx = path.join(novelAbs, 'canon/style/exemplars/positive.md');
+  if (!fs.existsSync(posEx)) gaps.push('missing canon/style/exemplars/positive.md');
+  else if ((loadText(posEx) || '').includes('待填写')) gaps.push('exemplars/positive.md 仍为模板占位');
+
+  if (fs.existsSync(checkpointPath)) {
+    const cp = loadText(checkpointPath) || '';
+    if (parseYamlScalar(cp, 'completed') !== 'true') gaps.push('state/checkpoints/prose-style.yaml completed 须为 true');
+  } else {
+    gaps.push('missing state/checkpoints/prose-style.yaml');
+  }
+
+  return { ready: gaps.length === 0, gaps };
+}
+
+export function collectProseKillList(novelAbs) {
+  const profile = loadProseProfileText(novelAbs);
+  const bookTerms = [...(profile.match(/^kill_list:\s*\n([\s\S]*?)(?=^\S|$)/m)?.[1] || '').matchAll(/^\s+-\s+(.+)$/gm)].map(
+    (m) => m[1].trim()
+  );
+  const useFramework = parseYamlScalar(profile, 'use_framework_crutch_list');
+  const framework = useFramework !== 'false' ? loadFrameworkCrutchWords() : [];
+  const voice = loadText(path.join(novelAbs, 'canon/style/voice.md')) || '';
+  const forbiddenBlock = voice.match(/禁忌[用语：:]*\s*\n([\s\S]*?)(?:\n#|$)/)?.[1] || '';
+  const voiceTerms = forbiddenBlock.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean);
+  return [...new Set([...bookTerms, ...framework, ...voiceTerms])].filter((t) => t.length >= 2);
+}
+
+export function validateTaskProseStyle(novelAbs, errors, warnings = []) {
+  const { ready, gaps } = assessProseStyleReadiness(novelAbs);
+  if (!ready) {
+    for (const g of gaps) errors.push(`prose-style: ${g}`);
+  }
+  const profile = loadProseProfileText(novelAbs);
+  if (profile && !parseYamlScalar(profile, 'genre_profile')) {
+    warnings.push('prose-style: genre_profile 未设');
+  }
+}
+
+export function syncFrameworkScaffolds(novelAbs, { copyMissing = true } = {}) {
+  const templateRoot = path.join(ROOT, 'stories/_template');
+  const copied = [];
+  const existing = [];
+  for (const rel of FRAMEWORK_SCAFFOLD_PATHS) {
+    const dest = path.join(novelAbs, rel);
+    if (fs.existsSync(dest)) {
+      existing.push(rel);
+      continue;
+    }
+    const src = path.join(templateRoot, rel);
+    if (!fs.existsSync(src)) continue;
+    if (copyMissing) {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
+      copied.push(rel);
+    }
+  }
+  const styleReady = assessProseStyleReadiness(novelAbs);
+  const agentTasks = [];
+  if (!styleReady.ready) {
+    agentTasks.push('@prose-style-architect — 填满 canon/style 与 prose-profile status:ready');
+  }
+  return { copied, existing, styleReady, agentTasks };
+}
+
 export function gateDraftingEntry(novelAbs, errors) {
   const phase = loadPhaseState(novelAbs);
   if (phase.phase === 'ideation') {
@@ -710,6 +1058,15 @@ export function gateDraftingEntry(novelAbs, errors) {
   }
   if (phase.phase === 'worldbuilding') {
     errors.push('chapter/outlining tasks blocked in worldbuilding — finish world + characters + outline first');
+    return;
+  }
+  if (phase.phase === 'drafting' || phase.phase === 'revision') {
+    const { ready, gaps } = assessProseStyleReadiness(novelAbs);
+    if (!ready) {
+      errors.push(
+        `prose style not ready — ${gaps.slice(0, 2).join('; ')}. Run: forge sync framework then @prose-style-architect`
+      );
+    }
   }
 }
 
@@ -989,6 +1346,57 @@ export function validateContinuityArtifacts(novelAbs, lastCompleted, errors, war
   if (lastCompleted > 0 && !loadText(logPath)?.trim()) {
     warnings.push('continuity-log.yaml empty after completed chapters');
   }
+  validateStateEvolutionLogs(novelAbs, warnings);
+  validateNarrativeSparks(novelAbs, warnings);
+}
+
+/** promoted sparks should have linked_registry_id or promotion_target beats path */
+export function validateNarrativeSparks(novelAbs, warnings) {
+  const nkText = loadText(path.join(novelAbs, 'registries/narrative-sparks.yaml'));
+  if (!nkText) return;
+  for (const block of [...nkText.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\nsparks:|$)/g)].map((m) => m[2])) {
+    const eid = block.match(/^\s*-\s+id:\s*(\S+)/m)?.[1];
+    const status = block.match(/status:\s*(\S+)/)?.[1];
+    const tier = block.match(/impact_tier:\s*(\S+)/)?.[1];
+    const ack = block.match(/author_ack:\s*(\S+)/)?.[1];
+    const linked = block.match(/linked_registry_id:\s*(\S+)/)?.[1];
+    if (status === 'promoted' && (!linked || linked === 'null')) {
+      warnings.push(`narrative-sparks ${eid}: promoted but missing linked_registry_id`);
+    }
+    if ((tier === 'arc' || tier === 'outline') && status === 'promoted' && ack !== 'true') {
+      warnings.push(`narrative-sparks ${eid}: ${tier} promotion requires author_ack: true`);
+    }
+  }
+}
+
+/** character-state-log / world-state-log entity refs should resolve to index/graph */
+export function validateStateEvolutionLogs(novelAbs, warnings) {
+  const indexText = loadText(path.join(novelAbs, 'canon/characters/index.yaml')) || '';
+  const charIds = new Set([...indexText.matchAll(/-\s+id:\s*(\S+)/g)].map((m) => m[1]));
+  const graphText = loadText(path.join(novelAbs, 'canon/entities/graph.yaml')) || '';
+  const graphIds = new Set([...graphText.matchAll(/-\s+id:\s*(\S+)/g)].map((m) => m[1]));
+
+  const cslText = loadText(path.join(novelAbs, 'registries/character-state-log.yaml'));
+  if (cslText) {
+    for (const block of [...cslText.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\nentries:|$)/g)].map((m) => m[2])) {
+      const cid = block.match(/character_id:\s*(\S+)/)?.[1];
+      const eid = block.match(/^\s*-\s+id:\s*(\S+)/m)?.[1];
+      if (cid && charIds.size > 0 && !charIds.has(cid)) {
+        warnings.push(`character-state-log ${eid}: character_id "${cid}" not in index.yaml`);
+      }
+    }
+  }
+
+  const wslText = loadText(path.join(novelAbs, 'registries/world-state-log.yaml'));
+  if (wslText) {
+    for (const block of [...wslText.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\nentries:|$)/g)].map((m) => m[2])) {
+      const entityId = block.match(/entity_id:\s*(\S+)/)?.[1];
+      const eid = block.match(/^\s*-\s+id:\s*(\S+)/m)?.[1];
+      if (entityId && graphIds.size > 0 && !graphIds.has(entityId)) {
+        warnings.push(`world-state-log ${eid}: entity_id "${entityId}" not in graph.yaml`);
+      }
+    }
+  }
 }
 
 export function checkPhaseNovelSync(novelAbs, warnings, errors = null, strict = false) {
@@ -1203,6 +1611,111 @@ export function reviewCoolPointDensity(novelAbs, chapter, text, results) {
   }
 }
 
+/** 正文 meta 规则（登记册/章号/框架术语不得进 manuscripts） */
+export const PROSE_META_RULES = [
+  { re: /\bch\d+\b/gi, label: '章编号 meta (chN)' },
+  { re: /\b(hk|fs|ot|cg|cp|pd)-\d{3}\b/gi, label: '登记册 id 泄漏' },
+  { re: /表世界/g, label: '框架术语「表世界」' },
+  { re: /缺陷链/g, label: '框架术语「缺陷链」' },
+  { re: /这本书/g, label: '打破第四墙「这本书」' },
+  { re: /(同桌线[，,]|三巷名入档|首见、)/g, label: '作者弧光摘要语' },
+  { re: /留到\s*ch\d+/gi, label: '远期章号 meta' },
+  { re: /一个钩子，终于/g, label: '钩子/meta 收束语' },
+  { re: /关键道具/g, label: '作者视角「关键道具」' },
+  { re: /埋设\s*fs-/gi, label: 'beats 指令泄漏' },
+  { re: /作者(埋|锁|注)/g, label: '作者指令语' },
+];
+
+export function scanProseMeta(body) {
+  const hits = [];
+  for (const { re, label } of PROSE_META_RULES) {
+    const m = body.match(re);
+    if (m?.length) hits.push(`${label}×${m.length}`);
+  }
+  return hits;
+}
+
+/** 反凑字/反重复章末（padding） */
+export function scanProsePadding(body, reviewCfg = null) {
+  const cfg = reviewCfg || loadReviewConfig();
+  const hits = [];
+  const dayEnd = body.match(/第[一二三四五六七八九十\d]+日尽/g) || [];
+  const maxDayEnd = cfg.maxClosingDayEndMarkers ?? 1;
+  if (dayEnd.length > maxDayEnd) {
+    hits.push(`重复「第N日尽」章末收束×${dayEnd.length}（上限 ${maxDayEnd}）`);
+  }
+  const closing = body.slice(Math.floor(body.length * 0.65));
+  const arcPat = /(线[，,]?\s*起|线[，,]?\s*收|入档|首见、|定心丸|最早的呼吸|第二口气)/g;
+  const arcHits = closing.match(arcPat) || [];
+  const maxArc = cfg.maxClosingArcSummaryHits ?? 1;
+  if (arcHits.length > maxArc) {
+    hits.push(`章末弧光/摘要语堆叠×${arcHits.length}`);
+  }
+  const sentences = closing.split(/[。！？\n]/).filter((s) => countChineseChars(s) > 10);
+  const seen = new Map();
+  for (const s of sentences) {
+    const key = s.trim().slice(0, 18);
+    if (key.length < 8) continue;
+    seen.set(key, (seen.get(key) || 0) + 1);
+  }
+  for (const [k, n] of seen) {
+    if (n >= 2) {
+      hits.push(`章末重复句「${k}…」×${n}`);
+      break;
+    }
+  }
+  return hits;
+}
+
+export function scanProseIntegrity(body, reviewCfg = null) {
+  const meta = scanProseMeta(body);
+  const padding = scanProsePadding(body, reviewCfg);
+  const errors = [...meta, ...padding];
+  return { ok: errors.length === 0, errors, meta, padding };
+}
+
+export function reviewMetaProseLeakage(chapter, text, results) {
+  const body = text.replace(/^---[\s\S]*?---\s*/, '');
+  const hits = scanProseMeta(body);
+  const pass = hits.length === 0;
+  results.dimensions.push({
+    id: 'meta_prose_leakage',
+    pass,
+    msg: pass ? 'ok' : hits.slice(0, 4).join('; '),
+  });
+  if (!pass) {
+    results.pass = false;
+    pushActionItem(results, {
+      dimension: 'meta_prose_leakage',
+      delegate_skill: 'patch-refiner',
+      severity: 'error',
+      message: `正文含框架/登记册 meta：${hits.slice(0, 3).join('; ')}`,
+      hint: '删除 chN、hk-/fs- id、表世界/缺陷链/这本书等；登记只写 registries，不进 manuscripts',
+    });
+  }
+}
+
+export function reviewAntiPadding(chapter, text, results) {
+  const body = text.replace(/^---[\s\S]*?---\s*/, '');
+  const hits = scanProsePadding(body);
+  const pass = hits.length === 0;
+  results.dimensions.push({
+    id: 'anti_padding',
+    pass,
+    msg: pass ? 'ok' : hits.slice(0, 3).join('; '),
+  });
+  if (!pass) {
+    results.pass = false;
+    pushActionItem(results, {
+      dimension: 'anti_padding',
+      delegate_skill: 'patch-refiner',
+      severity: 'error',
+      message: `章末凑字/重复收束：${hits.slice(0, 2).join('; ')}`,
+      hint: '删重复「第N日尽」与弧光摘要；扩 beats 中段，禁止堆章末说明文',
+    });
+  }
+}
+
 export function reviewDialogueQuality(novelAbs, chapter, text, results) {
   const beats = loadText(path.join(novelAbs, `canon/plot/beats/ch-${padChapter(chapter)}.md`)) || '';
   const expectsDialogue = /对话|说道|「/.test(beats);
@@ -1234,9 +1747,10 @@ export function loadWritingPlan(novelAbs) {
   const p = path.join(novelAbs, 'state/writing-plan.json');
   const defaults = {
     version: 1,
-    minWordsPerChapter: 3000,
-    maxWordsPerChapter: 6000,
-    maxChaptersPerSession: 4,
+    minWordsPerChapter: 2000,
+    minWordsHardFail: 1600,
+    maxWordsPerChapter: 4500,
+    maxChaptersPerSession: 2,
     maxChaptersPerBatch: 2,
     writingMode: 'serial',
   };
@@ -1289,7 +1803,7 @@ export function writeSessionRelay(novelAbs, novelRoot, nextStepSummary = null) {
 
 ## 生产约束（writing-plan.json）
 
-- 单章字数：${plan.minWordsPerChapter}–${plan.maxWordsPerChapter} 汉字（review 下限 ${plan.minWordsPerChapter}）
+- 单章目标 band：${plan.minWordsPerChapter}–${plan.maxWordsPerChapter} 汉字（review 硬下限 ${plan.minWordsHardFail ?? Math.max(1800, plan.minWordsPerChapter - 800)}；未达目标仅 warn）
 - **单次对话最多写 ${plan.maxChaptersPerSession} 章正文**（超过须新开会话）
 - batch-planner 硬上限：每批 ≤ ${plan.maxChaptersPerBatch} 章 beats
 

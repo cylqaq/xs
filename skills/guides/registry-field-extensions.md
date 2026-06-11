@@ -8,8 +8,10 @@
 | DeepSeek 建议 | 框架处置 |
 |---------------|----------|
 | timeline.yaml | 已有 `canon/timeline/master.yaml`，不新建 |
-| world-building-log | 已有 `canon/world/rules.md`；章后规则增量写 continuity-log |
+| world-building-log | 已有 `canon/world/rules.md`；章后规则增量写 continuity-log + world-state-log |
 | character-arc.yaml | 已有 `canon/plot/arcs.yaml` + `persona-shifts.yaml` |
+| character-state-log | **新增** `registries/character-state-log.yaml`（伤痕/能力/装备，见 state-evolution-chain） |
+| world-state-log | **新增** `registries/world-state-log.yaml`（地点破坏/修复，见 state-evolution-chain） |
 | relationship-tracking | **新增** `registries/relationship-tracking.yaml`（信任度 delta，补 graph 边） |
 | scene-registry | 可选；长篇启用，beats 已含场景时不必重复 |
 | pacing-metrics | 归入 `state/retention/ch-NNN.yaml`，不单独文件 |
@@ -49,6 +51,18 @@ summary 可增加：`total_planted`, `total_resolved`, `critical_debt_items`, `r
 ### appearance-log.yaml
 
 `scene_id`, `location`, `emotional_state`, `interaction_with`, `important_action`
+
+### character-state-log.yaml
+
+`category`, `state_key`, `permanence`, `visibility`, `callback_potential`, `linked_refs`, `superseded_by`
+
+### world-state-log.yaml
+
+`entity_type`, `entity_id`, `reversible`, `callback_potential`, `linked_refs`
+
+### narrative-sparks.yaml
+
+`narrative_potential`, `impact_tier`, `promotion_target`, `linked_registry_id`, `target_chapter`, `manuscript_anchor`, `triage_notes`
 
 ## 新增登记册（模板已含）
 

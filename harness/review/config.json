@@ -1,5 +1,8 @@
 {
-  "defaultMinWordsPerChapter": 3000,
+  "defaultMinWordsPerChapter": 2000,
+  "defaultMinWordsHardFail": 1600,
+  "maxClosingDayEndMarkers": 1,
+  "maxClosingArcSummaryHits": 1,
   "beatsCoverageRatio": 0.7,
   "openingHookMaxChapter": 3,
   "dialogueMinSnippets": 2,

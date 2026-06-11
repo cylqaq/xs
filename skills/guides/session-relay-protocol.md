@@ -8,6 +8,8 @@
 |------|------|------|
 | `state/working/session-relay.md` | `forge relay refresh` / `phase advance` | **新会话第一个读** |
 | `state/working/session-collect.yaml` | `@retention-analyst` 章后 | 作者 + 下一会话 orchestrator |
+| `state/working/sparks/ch-{NNN}-draft.yaml` | `@chapter-production` 写章中 | `@continuity-warden` 章后合并 |
+| `registries/narrative-sparks.yaml` | continuity 入库；retention 分诊 | batch-planner、context、作者 |
 | `harness/read-order.md` | 本书维护 | relay 之后第二读 |
 
 ## session-relay.md 含
@@ -15,6 +17,7 @@
 - 本书 phase、章号、writing-plan 约束
 - `forge next` 下一步 Skill 提示
 - session-collect 待确认项（≤3 问/章）
+- narrative-sparks 待分诊/待 author_ack 摘要（若有）
 - summary-rolling 节选
 - AGENTS 铁律摘要、命令速查
 
@@ -39,13 +42,14 @@ questions:
 
 ## 与 intake 区别
 
-| | seed-intake | session-collect |
-|--|-------------|-----------------|
-| 阶段 | ideation | drafting+ |
-| 门禁 | 离开 ideation | 不阻断 advance |
-| 目的 | 开书三层 seed | 连载中补洞/确认 |
+| | seed-intake | session-collect | narrative-sparks |
+|--|-------------|-----------------|------------------|
+| 阶段 | ideation | drafting+ | drafting+ |
+| 门禁 | 离开 ideation | 不阻断 advance（高优须 ack） | 不阻断 advance |
+| 目的 | 开书三层 seed | 连载中补洞/确认 | 涌现灵感分诊/晋升 |
 
 ## 相关
 
 - [`character-persona-chain.md`](character-persona-chain.md)
+- [`narrative-spark-protocol.md`](narrative-spark-protocol.md)
 - [`handoff-protocol.md`](handoff-protocol.md)

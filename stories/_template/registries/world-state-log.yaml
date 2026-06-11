@@ -1,0 +1,19 @@
+# 世界/地点可变状态 — 破坏/翻修/规则局部变更/关键物件状态
+# 维护：continuity-warden 章后；world-architect 可写 baseline（可选）
+# 禁止：permanence=permanent 且 status=active 的破坏，未登记修复不得在后续章节「自动复原」
+# 契约：skills/guides/state-evolution-chain.md
+
+entries: []
+# - id: wsl-001
+#   entity_type: location    # location | faction | infrastructure | object | rule_delta
+#   entity_id: loc-main-gate
+#   state_key: gate_burned
+#   description: 正门木梁焦黑坍塌，不可通行
+#   introduced_chapter: 5
+#   last_updated_ch: 5
+#   status: active           # active | repaired | destroyed | abandoned | resolved
+#   permanence: permanent
+#   reversible: false
+#   callback_potential: high
+#   linked_refs: [hk-002]
+#   notes: ""

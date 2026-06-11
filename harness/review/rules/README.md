@@ -15,10 +15,13 @@
 | 3 | timeline_order | timeline 单调 + frontmatter chapter/marker | continuity-warden |
 | 4 | dialogue_quality | beats 含对话时对话密度 | dialogue-craftsman |
 | 4b | beats_coverage | 编号 beats 与手稿关键词覆盖 ≥70% | chapter-production |
-| 5 | wordcount | 汉字 ≥ writing-plan.minWordsPerChapter | chapter-expander |
+| 5 | wordcount | tier=ok/warn/long **PASS**；tier=fail 低于 `minWordsHardFail`（默认 1600） | chapter-expander |
 | 6 | cool_point_density | beats `cool_points[]` → registry `delivered_chapter`；无登记时关键词兜底 | patch-refiner |
 | 7 | pov_consistency | frontmatter pov vs voice.md（同行） | patch-refiner |
-| 8 | forbidden_terms | voice.md 禁忌词 | patch-refiner |
+| 8 | meta_prose_leakage | 正文框架/meta 泄漏（chN、登记册 id、表世界等） | patch-refiner |
+| 8b | anti_padding | 重复章末收束、弧光摘要凑字 | patch-refiner |
+| 8c | forbidden_terms | voice.md 禁忌词 | patch-refiner |
+| 8d | ai_crutch_words | prose-profile kill_list + 框架套话表 | patch-refiner |
 | 9 | foreshadow_debt | 超期 planned 伏笔 | chapter-production |
 | 10 | micro_payoff | overdue micro-payoffs | patch-refiner |
 
@@ -29,8 +32,8 @@
   "dimension": "wordcount",
   "delegate_skill": "chapter-expander",
   "severity": "error",
-  "message": "章字数不足（2500/3000）",
-  "hint": "扩写感官与对话节拍，不新增剧情"
+  "message": "1500/2000 汉字（低于硬下限 1600）",
+  "hint": "按 beats 整段扩写感官/对话；禁止改结尾凑字或堆 meta 摘要"
 }
 ```
 

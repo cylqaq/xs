@@ -52,6 +52,31 @@ layers:
         min_chars: 4
         optional: true
         prompt: 能力代价强度？（例：高代价记忆灼蚀/自伤、低代价疲劳、无超自然）
+      prose_reference:
+        min_chars: 4
+        prompt: 文笔参考？（作者/作品/影视腔调，例：冷峻 noir、轻快甜宠、猫腻式絮语）
+      sentence_rhythm:
+        min_chars: 2
+        prompt: 句长节奏？（短促 / 绵长 / 混合）
+      emotional_temperature:
+        min_chars: 2
+        prompt: 情绪温度？（冷 / 暖 / 黑色幽默 / 压抑 / 热血）
+      hard_bans:
+        min_chars: 2
+        optional: true
+        prompt: 绝对不要的元素？（例：说明文腔、玛丽苏、频繁感叹号、某类烂梗）
+      loop_structure:
+        min_chars: 4
+        optional: true
+        prompt: 轮回/副本结构？（例：单场景十日循环、多副本串联、无轮回仅层层揭世界真相）
+      revelation_pacing:
+        min_chars: 4
+        optional: true
+        prompt: 世界观揭露节奏？（例：每卷揭一层、每 10 章一个小真相、终局才见底层）
+      protagonist_alignment:
+        min_chars: 4
+        optional: true
+        prompt: 主角道德定位？（例：算计型反英雄、真反派、灰色疯子、表面恶实则救赎）
 
   l3:
     label: Layer 3 书名

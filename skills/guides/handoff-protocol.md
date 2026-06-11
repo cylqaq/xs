@@ -11,7 +11,8 @@
 
 - 上游 handoff 已 `complete`（含 `reads_handoff_when_dialogue` 条件依赖）
 - workflow `requires_files` 产物存在（manifest `during_write_by_skill` 全量记入 artifacts）
-- `cli_postflight` 全部成功（continuity：`compact --chapter N` + `validate`）
+- **`@chapter-production`**：`forge draft check` 须 **integrity ok** 且 wordcount 非 fail（CLI 硬拒）
+- `cli_postflight` 全部成功（continuity：`compact --chapter N` + `validate --task post-chapter`）
 - 结果写入交接单 `cli_postflight_passed`
 - `skip_when: no_persona_shift_triggers` 步可自动写 skip handoff，无需单独会话
 

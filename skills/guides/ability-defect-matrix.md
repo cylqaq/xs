@@ -46,6 +46,14 @@ character_bindings:
 3. **禁止** chapter-production 让角色免代价使用能力（除非 continuity-warden 登记例外道具）
 4. 学龄叙事须遵守 `narrative_age_span`；年龄差写入 `protagonist_age_gap`
 
+## 无超自然 / 纯逻辑解谜
+
+当 `seed/layer2` 的 `ability_cost_tone` 为「无超自然」或类似表述时：
+
+1. `power-defects.yaml` 保持 `meta.enabled: false`，`defect_types` / `tragedy_ignition` 可为空
+2. `foreshadow-engineer` 改以 `chekhov-guns`、`open-threads`、`plot-debt` 管理谜题伏笔
+3. `world-architect` 在 `rules.md` 写清副本/轮回/规则悖论，不必发明能力代价
+
 ## 何时需要新 Skill？
 
 **不需要**新增 workflow 步；现有链已覆盖。若缺陷系统复杂到独立世界观（如完整修炼体系），再考虑拆分 `power-system-engineer` 并改 `creation-chain.yaml`（须跑 layer-sync 检查表）。

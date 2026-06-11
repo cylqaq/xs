@@ -8,7 +8,7 @@
 
 ## 生产约束
 
-见 `state/writing-plan.json`：`maxChaptersPerSession` 默认 4。
+见 `state/writing-plan.json`：`maxChaptersPerSession` 默认 2；字数 band 2000–4500。
 
 ## 下一步
 

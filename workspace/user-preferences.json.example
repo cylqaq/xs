@@ -1,6 +1,9 @@
 {
   "defaultGenre": "general",
   "defaultPov": "third-limited",
-  "minWordsPerChapter": 3000,
+  "minWordsPerChapter": 2000,
+  "minWordsHardFail": 1600,
+  "maxWordsPerChapter": 4500,
+  "maxChaptersPerSession": 2,
   "preferredTone": ""
 }

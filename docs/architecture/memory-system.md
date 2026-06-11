@@ -32,7 +32,9 @@ LLM 的上下文窗口是 **易失工作内存**。长篇小说失败的主因�
 3. 角色：`forge context` 拉取 `appear_in: [current_ch]` 或 beats `characters[]` 引用的角色卡（`collectAppearInCharacterFiles`）
 4. 登记册：`foreshadowing` / `hooks` / `open-threads` 在 context 时写入 `state/working/context-snapshot-ch-{NNN}/` 的 **open 过滤快照**，非全量 dump
 5. 地点/势力：graph_hybrid 模式按 beats 引用扩展
-6. 总 token 预算超限时：**先压缩 M1**，再减 M2 章数，**永不裁 M3 中与 beats 冲突的条目**
+6. 角色/世界可变状态：`character-state-log` / `world-state-log` 的 `status: active` 快照（见 `state-evolution-chain.md`）
+7. 叙事火花：`narrative-sparks` 中 `captured|triaged|deferred` 快照（见 `narrative-spark-protocol.md`）
+8. 总 token 预算超限时：**先压缩 M1**，再减 M2 章数，**永不裁 M3 中与 beats 冲突的条目**
 
 ## 写后提取流水线（Continuity Pipeline）
 
@@ -47,6 +49,8 @@ LLM 的上下文窗口是 **易失工作内存**。长篇小说失败的主因�
   → 写 chapter-summary YAML（结构化，供脚本读）
   → 再生 summary-rolling.md（模板见 harness/templates）
   → continuity-log 追加
+  → character-state-log / world-state-log 追加（状态演化链）
+  → narrative-sparks 合并章内 draft（叙事火花）
   → validate
 ```
 

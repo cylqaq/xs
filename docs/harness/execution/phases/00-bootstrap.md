@@ -1,6 +1,6 @@
 # Phase 00 — Bootstrap（创建阶段入口）
 
-**Skill 链**：`novel-orchestrator` → **`seed-intake`**（多轮问答，≤3 问/轮）→ **`forge intake check` PASS** → `novel-bootstrap`
+**Skill 链**：`novel-orchestrator` → **`seed-intake`**（多轮问答，≤3 问/轮）→ **`forge intake check` PASS** → `novel-bootstrap` → **`prose-style-architect`**（见 [`00b-prose-style.md`](00b-prose-style.md)）
 
 > **设计原则**：用户想象力入口在 `seed/author-intent.md`，但**一句话不开写**。收齐 L1–L3 前 CLI 拒绝离开 `ideation`，拒绝 `forge context` / `forge review`。不依赖 Cursor OS，靠 `seed/*.yaml` + `forge intake`。
 
@@ -41,7 +41,7 @@ pnpm forge manifest bootstrap stories/{id}
 
 ## AFTER
 
-- 交接 `world-architect`（Phase 01）
+- 交接 `prose-style-architect`（Phase 00b）→ 完成后 `world-architect`（Phase 01）
 - orchestrator 记录 `state/checkpoints/bootstrap.yaml`
 
 ## 禁止

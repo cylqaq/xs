@@ -64,7 +64,12 @@ function main() {
       process.exit(1);
     }
   }
-  console.log('✓ creation-chain 人物 3 步 + outline 4 步独立 Skill');
+  const proseStep = plan.steps.find((s) => s.skill === 'prose-style-architect');
+  if (!proseStep) {
+    console.error('FAIL: creation-chain missing @prose-style-architect step');
+    process.exit(1);
+  }
+  console.log('✓ creation-chain 含 prose-style-architect + 人物 3 步 + outline 4 步');
 
   r = runForge('handoff', 'complete', SMOKE_ID, '--skill', 'fake-skill', '--workflow', 'creation-chain');
   if (r.code === 0) {
