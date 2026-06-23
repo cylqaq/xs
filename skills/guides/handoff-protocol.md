@@ -11,10 +11,14 @@
 
 - 上游 handoff 已 `complete`（含 `reads_handoff_when_dialogue` 条件依赖）
 - workflow `requires_files` 产物存在（manifest `during_write_by_skill` 全量记入 artifacts）
+- **`@navigator`**（第十轮）：`during_write_by_skill: []`，仅校验 INDEX 已读，无强制产物
 - **`@chapter-production`**：`forge draft check` 须 **integrity ok** 且 wordcount 非 fail（CLI 硬拒）
+- **`@continuity-warden`**：post-chapter manifest 要求**同时**写出 INDEX 三件套（缺任一 → handoff 拒绝）
 - `cli_postflight` 全部成功（continuity：`compact --chapter N` + `validate --task post-chapter`）
 - 结果写入交接单 `cli_postflight_passed`
 - `skip_when: no_persona_shift_triggers` 步可自动写 skip handoff，无需单独会话
+
+**字数哲学**：故事合理性优先于字数达标。字数是参考指标，不是硬性目标。详见 [`word-count-philosophy.md`](word-count-philosophy.md)
 
 ## 章完成（drafting）
 

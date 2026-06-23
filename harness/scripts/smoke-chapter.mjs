@@ -97,6 +97,49 @@ block_reason: null
   );
 
   writeFileSync(
+    path.join(smokeAbs, 'registries/emotional-beats.yaml'),
+    `items:
+  - id: eb-001
+    type: gut_punch
+    planned_chapter: 1
+    delivered_chapter: 1
+    intensity: 3
+    summary: 章末悬念中的沉默一击
+    linked_conflict: ct-001
+`,
+    'utf8'
+  );
+
+  writeFileSync(
+    path.join(smokeAbs, 'canon/plot/story-engine.yaml'),
+    `throughline:
+  statement: 测试主角必须在期限前守住秘密，否则失去唯一庇护
+  recurrence_rule: 每章回扣赌注
+  anti_diary: 禁止纯日常
+
+position_conflicts:
+  - id: pc-001
+    title: 冒烟对立
+    sides:
+      - { id: a, label: 甲, voice: 推进 }
+      - { id: b, label: 乙, voice: 抵抗 }
+    stakes: 失去庇护
+    escalation: []
+    linked_arc: arc-main
+    status: active
+
+character_tensions:
+  - id: ct-001
+    pair: [char-protagonist, char-antagonist]
+    friction: 逼近 vs 退避
+    turn_chapters: [1]
+    linked_arc: arc-main
+    status: active
+`,
+    'utf8'
+  );
+
+  writeFileSync(
     path.join(smokeAbs, 'canon/characters/index.yaml'),
     `characters:
   - id: char-protagonist
@@ -233,6 +276,24 @@ function completeChapterHandoffs() {
   const msPath = path.join(smokeAbs, 'manuscripts/chapters/ch-001.md');
   const msBackup = existsSync(msPath) ? readFileSync(msPath, 'utf8') : null;
   if (msBackup) rmSync(msPath);
+
+  // 第十轮：navigator 在首步（不需要手稿；during_write_by_skill: []）
+  let rn = runForge(
+    'handoff',
+    'complete',
+    SMOKE_ID,
+    '--skill',
+    'navigator',
+    '--chapter',
+    '1',
+    '--workflow',
+    'chapter-cycle'
+  );
+  console.log(rn.out);
+  if (rn.code !== 0) {
+    console.error('FAIL: navigator handoff must succeed without manuscript (during_write_by_skill: [])');
+    process.exit(1);
+  }
 
   let r = runForge(
     'handoff',

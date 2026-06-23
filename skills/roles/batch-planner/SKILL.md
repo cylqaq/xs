@@ -9,7 +9,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 12 步 · 读 `@hook-manager` handoff · 交 `@retention-analyst`
+`creation-chain` 第 13 步 · 读 `@hook-manager` handoff · 交 `@retention-analyst`
 
 ## 规则（硬）
 
@@ -19,7 +19,7 @@ description: >-
 
 ## 产出
 
-- `canon/plot/beats/ch-{NNN}.md` × N
+- `canon/plot/beats/ch-{NNN}.md` × N（**须含** `conflict_active`、`throughline_touch`、`cool_points` 或 `emotional_beats`，见 [`story-engine-protocol.md`](../../guides/story-engine-protocol.md)）
 - `state/batches/batch-{k}.yaml`（`beats_ready: true`）
 
 ## 流程

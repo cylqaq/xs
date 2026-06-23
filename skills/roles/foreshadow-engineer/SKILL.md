@@ -9,7 +9,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 10 步 · 读 `@plot-architect` handoff · 交 `@hook-manager`
+`creation-chain` 第 11 步 · 读 `@conflict-architect` handoff · 交 `@hook-manager`
 
 ## 产出
 

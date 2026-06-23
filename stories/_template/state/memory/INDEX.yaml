@@ -1,0 +1,40 @@
+# Memory 记忆导航索引（L0 · 永读 · ≤ 1 KB）
+# 维护：continuity-warden 章后自动写
+# 协议：docs/architecture/context-budget-system.md
+# 作用：让 LLM 知道「该读哪几章 summary」而不是堆所有
+#
+# 自动化：pnpm forge compact 章后自动刷新；pnpm forge nav rebuild 强制
+
+version: 2
+last_completed_chapter: 0
+last_rebuilt_at: ""
+
+summary_rolling:
+  path: state/memory/summary-rolling.md
+  chars: 0
+  cap: 2000             # 超过则 continuity-warden 须压缩
+  arc_anchored: true    # 当前是否以最近 arc 锚点为开头
+
+chapter_summaries:
+  count: 0
+  recent_5: []          # 最近 5 章 ch-NNN 列表
+  archive_at: 30        # 超过此章数的 summary 移入 archive/
+  archive_count: 0
+
+prev_summary:
+  path: ""              # state/memory/chapter-summaries/ch-NNN.yaml
+
+arc_checkpoints:
+  # 卷末/弧末快照锚点（人工或 retention-analyst 标记）
+  # - chapter: 20
+  #   path: state/snapshots/ch-020-arc-midpoint.md
+  #   summary: 第一弧收束，主角公开身份
+  []
+
+keyword_index:
+  path: state/memory/keyword-index.json
+  exists: false
+  built_at: ""
+
+circuit_state: green
+notes: ""                # 由 forge doctor 自动写最近一次体检结论摘要

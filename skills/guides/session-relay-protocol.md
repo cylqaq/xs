@@ -8,8 +8,10 @@
 |------|------|------|
 | `state/working/session-relay.md` | `forge relay refresh` / `phase advance` | **新会话第一个读** |
 | `state/working/session-collect.yaml` | `@retention-analyst` 章后 | 作者 + 下一会话 orchestrator |
+| `state/working/context-plan-ch-{NNN}.yaml` | `@navigator`（第十轮） | `@context-router` + `@chapter-production` |
 | `state/working/sparks/ch-{NNN}-draft.yaml` | `@chapter-production` 写章中 | `@continuity-warden` 章后合并 |
 | `registries/narrative-sparks.yaml` | continuity 入库；retention 分诊 | batch-planner、context、作者 |
+| `canon/INDEX.yaml` / `registries/INDEX.yaml` / `state/memory/INDEX.yaml` | `@continuity-warden`（第十轮 · 章后必更） | **所有 Skill 永读** |
 | `harness/read-order.md` | 本书维护 | relay 之后第二读 |
 
 ## session-relay.md 含

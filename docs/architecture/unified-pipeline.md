@@ -14,12 +14,12 @@ flowchart TB
     O[novel-orchestrator] --> SI[seed-intake] --> B[novel-bootstrap]
     B --> PSA[prose-style-architect] --> W[world-architect] --> C[character-forge]
     C --> CN[cast-network-weaver] --> PV[persona-voice-binder]
-    PV --> P[plot-architect] --> F[foreshadow-engineer]
+    PV --> P[plot-architect] --> CA[conflict-architect] --> F[foreshadow-engineer]
     F --> H[hook-manager] --> BP[batch-planner] --> ORA[retention-analyst outline]
   end
 
   subgraph DRAFT["② chapter-cycle"]
-    CR[context-router] --> CP[chapter-production]
+    NV[navigator] --> CR[context-router] --> CP[chapter-production]
     CP --> DC{when_dialogue?}
     DC -->|yes| DCs[dialogue-craftsman]
     DC -->|no| CW[continuity-warden]
@@ -49,6 +49,7 @@ flowchart TB
 
 | 步 | workflow id | Skill | handoff postflight 要点 |
 |----|-------------|-------|-------------------------|
+| 0 | navigate | **navigator**（第十轮） | doctor + nav build → context-plan ≤200 行 |
 | 1 | route-context | context-router | manifest + context |
 | 2 | draft | chapter-production | 手稿存在 |
 | 3 | dialogue | dialogue-craftsman | 条件步 |
@@ -72,17 +73,22 @@ flowchart TB
 
 | 模式 | 何时 | 加载 |
 |------|------|------|
+| **navigator** | 第十轮新增 · 必跑 | L0 INDEX 三件套 → context-plan |
 | auto | 默认 | manifest JIT（含 `prose-profile` / voice / exemplars） |
 | graph_hybrid | 多角色章 | graph 子图 + 角色卡 |
 | bm25_fallback | 图谱不足 | keyword-index |
 
-配置：`state/context-mode.yaml`（context-router）
+配置：`state/context-mode.yaml`（context-router） · `harness/context-budget.yaml`（v2 · 防雪球）
 
 ## 工程韧性
 
 | 问题 | 对策 |
 |------|------|
+| **上下文滚雪球** | **L0 INDEX 导航 + circuit_state 熔断（第十轮）** |
 | 上下文压缩 | `state/snapshots/` 检查点 |
 | 超时 | batch-planner ≤2 章/beats |
 | 中断续写 | `last_completed_chapter` + handoff 状态 |
 | 层漂移 | [`layer-sync-contract.md`](../harness/layer-sync-contract.md) + `forge workflow validate` |
+| **24×7 失控** | **AI Loop 安全栓（stall/cost/review_fail/context_pressure）** |
+| **字数凑字** | **字数哲学：故事合理性优先于字数达标**（详见 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md)） |
+| **根项目污染** | **根项目保护规范**（详见 [`docs/ops/root-project-protection.md`](../ops/root-project-protection.md)） |

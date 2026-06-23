@@ -15,8 +15,11 @@
 
 ## 五层联动（改 Skill / workflow / manifest / 文档必查）
 
-Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机**解耦但环环相扣**。  
+Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机**解耦但环环相扣**。 
 更新任意一层 → 对照 [`docs/harness/layer-sync-contract.md`](docs/harness/layer-sync-contract.md) 检查表 + `pnpm forge workflow validate`。
+
+**第十轮新增 L0 INDEX 导航层**（防雪球核心）：所有 Skill 永读三份 INDEX（合计 ≤ 6 KB），不再加载海量原始文件。  
+契约：[`docs/architecture/context-budget-system.md`](docs/architecture/context-budget-system.md) · [`skills/guides/context-budget-protocol.md`](skills/guides/context-budget-protocol.md)
 
 ## Repository Map
 
@@ -31,13 +34,14 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 ## 写小说时的铁律
 
 0. **每轮先 next** — `pnpm forge next stories/{id}` 决定当前 Skill；多智能体完成后 `pnpm forge handoff complete`
+0a. **每章先 doctor + nav** — `pnpm forge doctor stories/{id} --chapter N` 看 circuit_state；新会话/yellow 必跑 `pnpm forge nav build`（防雪球）
 1. **开书先 intake** — `pnpm forge intake questions` 多轮收 seed（含文笔字段），`forge intake check` PASS 后才 novel-bootstrap → **prose-style-architect**
 2. **先 context + manifest，再动笔** — `pnpm forge context` + `pnpm forge manifest`
 3. **只改手稿与 state** — `canon/` 须经 continuity 流程更新，禁止凭记忆覆盖
 3a. **新会话先读** `state/working/session-relay.md`（`pnpm forge relay refresh`）
 3b. **单会话≤2章正文** · **integrity 硬门禁** — `pnpm forge draft check` 须 integrity ok 才可 production handoff（见 `production-integrity-gates.md`）
 3c. **正文禁止 meta** — 登记册 id / chN / 表世界 等不得进 `manuscripts/`
-4. **登记册必同步** — 伏笔/钩子/爽点/微兑现/plot-debt/character-state-log/world-state-log/**narrative-sparks** 章后更新
+4. **登记册必同步** — 伏笔/钩子/爽点/**哭点 emotional-beats**/微兑现/plot-debt/character-state-log/world-state-log/**narrative-sparks** 章后更新
 5. **章后链** — continuity-warden → persona-evolution-warden → retention-analyst → **review**
 6. **review 失败** — `forge next` 进入 `patch-cycle`；按 `action_items.delegate_skill` 修补（revision 三元组自动脚手架），≤3 轮否则 blocked
 7. **章完成** — rule-reviewer handoff（须 review PASS）→ `forge phase advance --chapter N`（写 `@novel-orchestrator` handoff；高优 session-collect 须 `author_ack` 或 `--ack-session-collect`）
@@ -46,10 +50,12 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 ## Canonical Docs
 
 - 状态机（唯一真相源）：`docs/architecture/pipeline-state-machine.md`
+- **上下文预算（防雪球）**：`docs/architecture/context-budget-system.md`（第十轮 · L0 INDEX 导航 + 熔断器）
 - 统一流水线：`docs/architecture/unified-pipeline.md`
 - 框架现状：`docs/ops/framework-status.md`（**仅框架能力，不追踪单书进度**）
 - 单书跟框架：`docs/ops/book-framework-sync.md`
 - **生产完整性迭代**：`docs/ops/harness-integrity-iteration.md`
+- **叙事引擎迭代**：`docs/ops/story-engine-iteration.md`
 - 路线图：`docs/ops/roadmap.md`
 - 用书清单：`docs/ops/first-run-checklist.md`
 - 五层联动契约：`docs/harness/layer-sync-contract.md`
@@ -58,6 +64,11 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 - 目录契约：`docs/architecture/story-directory-schema.md`
 - 生产流水线：`docs/architecture/production-pipeline.md`
 - 单书生命周期：`docs/harness/execution/lifecycle.md`
+- **字数哲学**：`skills/guides/word-count-philosophy.md`（故事合理性优先于字数达标）
+- **根项目保护**：`docs/ops/root-project-protection.md`（防止书籍生产污染根项目）
+- **错误恢复指南**：`docs/ops/error-recovery-guide.md`（流程卡住/手稿写坏时的恢复路径）
+- **单书生命周期**：`docs/ops/book-lifecycle.md`（从创建到归档的完整管理）
+- **质量门禁检查清单**：`docs/ops/quality-gates-checklist.md`（每章/每卷/每书的质量检查）
 
 ## Do Not
 
@@ -65,3 +76,4 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 - 不要跳过 `registries/` 直接写「后面会解释」。
 - 不要整本读取 `manuscripts/` 当上下文；用 `state/memory/` 与 manifest。
 - 不要修改 `stories/_template/` 作为正式创作（应复制为新 id）。
+- **不要污染根项目**：书籍项目应放在 `e:/个人/写书/{novel-id}/`，不要在根项目下创建书籍文件。详见 [`docs/ops/root-project-protection.md`](docs/ops/root-project-protection.md)。

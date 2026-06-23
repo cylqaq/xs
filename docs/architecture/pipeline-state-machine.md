@@ -13,8 +13,8 @@ ideation → worldbuilding → outlining → drafting ⇄ revision → publish
 | 创建 | ideation | `bootstrap` / `prose-style` | orchestrator → seed-intake → intake check → novel-bootstrap → **prose-style-architect** |
 | 世界观 | worldbuilding | `worldbuilding` | world-architect |
 | 人物 | outlining · `sub_phase: characters` | `characters` | character-forge → cast-network-weaver → persona-voice-binder |
-| 大纲/批次 | outlining | `outline-batch` | plot-architect → foreshadow-engineer → hook-manager → batch-planner → retention-analyst |
-| 连载 | drafting | `chapter-draft` / `post-chapter` | context-router → chapter-production → [dialogue-craftsman] → continuity-warden → persona-evolution-warden → retention-analyst → rule-reviewer → advance |
+| 大纲/批次 | outlining | `outline-batch` | plot-architect → **conflict-architect** → foreshadow-engineer → hook-manager → batch-planner → retention-analyst |
+| 连载 | drafting | `chapter-draft` / `post-chapter` | **navigator** → context-router → chapter-production → [dialogue-craftsman] → continuity-warden → persona-evolution-warden → retention-analyst → rule-reviewer → advance |
 | 卷级精修 | revision | `revision-volume` | chief-editor → style-guardian → patch-refiner → rule-reviewer |
 | 元数据重建 | drafting · `sub_phase: rebuild-canon` | `rebuild-canon` | canon-rebuilder → novel-orchestrator（`rebuild-chain`） |
 | 发布 | publish | — | 导出脚本（待建） |
@@ -28,10 +28,11 @@ ideation → worldbuilding → outlining → drafting ⇄ revision → publish
 ## 单章微生命周期（drafting）
 
 ```
+NAV     forge doctor + nav build → context-plan-ch-NNN.yaml（防雪球 · 第十轮）
 BEFORE  manifest chapter-draft + forge context
 DURING  chapter-production → [dialogue-craftsman 当 beats 含对话]（workflow `when_dialogue`）
         GATE-PROD  draft check：wordcount 非 fail + integrity ok（handoff 硬拒）
-AFTER   manifest post-chapter → continuity-warden → persona-evolution-warden → retention-analyst
+AFTER   manifest post-chapter → continuity-warden（更新 INDEX 三件套）→ persona-evolution-warden → retention-analyst
 GATE    rule-reviewer handoff（cli_postflight: review；含 meta_prose_leakage + anti_padding；FAIL 拒绝 handoff）
         ├─ PASS → 全章 handoff 齐全 → forge phase advance --chapter N
         │         → 写 novel-orchestrator handoff · sync read-order · session-collect 高优门禁
@@ -54,6 +55,9 @@ GATE    rule-reviewer handoff（cli_postflight: review；含 meta_prose_leakage 
 ## CLI 与阶段绑定
 
 ```bash
+pnpm forge doctor stories/{id} --chapter N            # 第十轮新增：预算+INDEX+loop 体检
+pnpm forge budget stories/{id} --chapter N            # 第十轮新增：当前章预算可视化
+pnpm forge nav build|rebuild|lookup stories/{id} ...  # 第十轮新增：INDEX 导航
 pnpm forge manifest bootstrap|prose-style stories/{id}
 pnpm forge manifest outline-batch stories/{id} --chapter 1
 pnpm forge manifest chapter-draft stories/{id} --chapter N

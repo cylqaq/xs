@@ -23,8 +23,8 @@ pnpm forge handoff status stories/{id}        # 已完成的 Skill 交接
 | phase | workflow | Skill 链 |
 |-------|----------|----------|
 | ideation | `creation-chain` | seed-intake → intake check → novel-bootstrap → prose-style-architect → … |
-| worldbuilding / outlining | `creation-chain` | world → character（3 步）→ plot → foreshadow → hook → batch → retention |
-| drafting | `chapter-cycle` | context-router → production → [dialogue] → continuity → persona-evolution → retention → reviewer |
+| worldbuilding / outlining | `creation-chain` | world → character（3 步）→ plot → conflict-architect → foreshadow → hook → batch → retention |
+| drafting | `chapter-cycle` | **navigator** → context-router → production → [dialogue] → continuity → persona-evolution → retention → reviewer |
 | review_fail | `patch-cycle` | `forge review` FAIL 自动脚手架 `state/revisions/`；`forge next` 路由 delegate |
 | review_pass | advance 步 | handoff @rule-reviewer → `forge phase advance --chapter N` → **自动写本角色 handoff** |
 | metadata_drift | `rebuild-chain` | canon-rebuilder（`sub_phase: rebuild-canon`） |
@@ -47,6 +47,7 @@ pnpm forge handoff status stories/{id}        # 已完成的 Skill 交接
 - batch-planner：单次最多 2 章 beats（`maxChaptersPerBatch`）
 - chapter-production：单次会话最多 `writing-plan.maxChaptersPerSession` 章（默认 **2**）
 - 章后/新会话：`pnpm forge relay refresh` → `state/working/session-relay.md`
+- **第十轮 · 防雪球**：drafting 章首必跑 `forge doctor --chapter N`；circuit_state=red 须 `forge nav rebuild` 后再继续
 - **必须先** `forge intake check` PASS，再 novel-bootstrap → **prose-style-architect**（`validate --task prose-style`）
 - drafting 前 `canon/style/prose-profile.yaml` 须 `status: ready`（旧书：`forge sync framework`）
 - ideation 禁止 `forge context` / `forge review`（CLI 已拦截）

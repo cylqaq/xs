@@ -1,7 +1,8 @@
 # 生产完整性门禁（Production Integrity Gates）
 
 > **性质**：框架硬门禁 · 零 LLM · `forge draft check` + `forge review` + `handoff complete` 三重强制  
-> **根因**：2026-06 ch5 meta/凑字事件 — 流程跑完但 review 有盲区，Agent 为凑字数写登记册语言
+> **根因**：2026-06 ch5 meta/凑字事件 — 流程跑完但 review 有盲区，Agent 为凑字数写登记册语言  
+> **字数哲学**：见 [`word-count-philosophy.md`](word-count-philosophy.md) — 故事合理性优先于字数达标
 
 ## 反推问题链
 

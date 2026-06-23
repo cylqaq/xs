@@ -8,11 +8,12 @@
 
 | 层 | 管什么 | 真相源路径 | 不管什么 |
 |----|--------|------------|----------|
+| **L0 INDEX**（第十轮） | 设定/登记/记忆**导航页** | `stories/{id}/{canon,registries,state/memory}/INDEX.yaml` | 不抄正文（≤ 2 KB / 文件） |
 | **L1 Skill** | 角色语义、产出说明、会话内行为 | `skills/roles/*/SKILL.md` | 不定义全局顺序（交给 workflow） |
 | **L2 Workflow** | 多智能体顺序、handoff、CLI 门禁、条件步 | `harness/workflows/*.yaml` | 不重复列完整读文件清单（交给 manifest） |
-| **L3 Manifest** | BEFORE/DURING/AFTER 文件路径、validators | `harness/manifests/*.yaml` | 不定义步骤先后（交给 workflow） |
+| **L3 Manifest** | BEFORE/DURING/AFTER 文件路径、validators、`source: from_index` | `harness/manifests/*.yaml` | 不定义步骤先后（交给 workflow） |
 | **L4 执行文档** | 人类读序、阶段细则、禁止项 | `docs/harness/execution/phases/*.md` | 不替代可执行脚本 |
-| **L5 架构** | 全书阶段迁移、章微生命周期 | `docs/architecture/pipeline-state-machine.md` | 不列逐步 CLI（L2 更细） |
+| **L5 架构** | 全书阶段迁移、章微生命周期、**预算契约** | `docs/architecture/pipeline-state-machine.md` · `context-budget-system.md` | 不列逐步 CLI（L2 更细） |
 
 **编排可执行真相源**：`harness/scripts/orchestrator-lib.mjs`（编译 L2 → `forge next` / `handoff`）
 
@@ -43,10 +44,19 @@ flowchart TB
 
 ```bash
 pnpm forge workflow validate    # L2 skill ⊆ L3 manifest.skills
+pnpm forge doctor stories/{id} --chapter N   # L0 INDEX 鲜度 + 预算（第十轮）
 pnpm smoke:all                  # L2 handoff + CLI 闭环
 ```
 
 人工对照清单见下文「迭代检查表」。
+
+### 改了 L0 INDEX 协议（第十轮新增）
+
+- [ ] `harness/context-budget.yaml` `nav_index_files` 列表同步
+- [ ] `stories/_template/{canon,registries,state/memory}/INDEX.yaml` 模板与字段一致
+- [ ] `skills/roles/continuity-warden/SKILL.md` 章后维护责任写明
+- [ ] `harness/manifests/post-chapter.yaml` `during_write_by_skill.continuity-warden` 含三份 INDEX
+- [ ] `pnpm forge doctor stories/_template --chapter 1` 通过
 
 ## 迭代检查表（勾选后再声称完成）
 
@@ -93,7 +103,7 @@ pnpm smoke:all                  # L2 handoff + CLI 闭环
 
 | workflow | YAML | 主 manifest | 主 phase 文档 | Skill 索引 |
 |----------|------|-------------|---------------|------------|
-| creation-chain | `creation-chain.yaml` | bootstrap / prose-style / worldbuilding / characters / outline-batch | 00–00b–03 | `skills/README.md` 创建链（13 步） |
+| creation-chain | `creation-chain.yaml` | bootstrap / prose-style / worldbuilding / characters / outline-batch | 00–00b–03 | `skills/README.md` 创建链（14 步） |
 | chapter-cycle | `chapter-cycle.yaml` | chapter-draft / post-chapter | 05–06 | 连载链（8 步） |
 | patch-cycle | `patch-cycle.yaml` | —（读 reviews） | 07 | patch-refiner 等 |
 | revision-volume | `revision-volume.yaml` | revision-volume | 07 | 卷精修 |
@@ -111,3 +121,8 @@ pnpm smoke:all                  # L2 handoff + CLI 闭环
 - Handoff 协议：[`skills/guides/handoff-protocol.md`](../../skills/guides/handoff-protocol.md)
 - 工作流细则：[`../../harness/workflows/README.md`](../../harness/workflows/README.md)
 - 正式首跑：[`../ops/first-run-checklist.md`](../ops/first-run-checklist.md)
+- **字数哲学**：[`../../skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md) — 故事合理性优先于字数达标
+- **根项目保护**：[`../ops/root-project-protection.md`](../ops/root-project-protection.md) — 防止书籍生产污染根项目
+- **错误恢复指南**：[`../ops/error-recovery-guide.md`](../ops/error-recovery-guide.md) — 流程卡住/手稿写坏时的恢复路径
+- **单书生命周期**：[`../ops/book-lifecycle.md`](../ops/book-lifecycle.md) — 从创建到归档的完整管理
+- **质量门禁检查清单**：[`../ops/quality-gates-checklist.md`](../ops/quality-gates-checklist.md) — 每章/每卷/每书的质量检查

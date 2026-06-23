@@ -35,6 +35,7 @@ import {
   reviewDialogueQuality,
   reviewBeatsCoverage,
   reviewCoolPointDensity,
+  reviewEmotionalBeatDelivery,
   reviewMetaProseLeakage,
   reviewAntiPadding,
   updateReviewRound,
@@ -75,6 +76,14 @@ import {
   formatDraftCheckReport,
   loadWritingPlan,
 } from './forge-lib.mjs';
+import {
+  loadContextBudget,
+  loadNavIndices,
+  assessContextHealth,
+  rebuildNavIndices,
+  formatDoctorReport,
+  writeCircuitState,
+} from './context-budget-lib.mjs';
 import {
   WORKFLOW_NAMES,
   resolveNextStep,
@@ -209,7 +218,7 @@ function cmdValidate(args) {
     if (task === 'cast-network') validateTaskCastNetwork(novelAbs, errors, warnings);
     if (task === 'persona-voice') validateTaskPersonaVoice(novelAbs, errors, warnings);
     if (task === 'prose-style') validateTaskProseStyle(novelAbs, errors, warnings);
-    if (task === 'outline-batch') validateTaskOutlineBatch(novelAbs, taskChapter, errors);
+    if (task === 'outline-batch') validateTaskOutlineBatch(novelAbs, taskChapter, errors, warnings);
     if (task === 'rebuild-canon') validateTaskRebuild(novelAbs, errors);
     if (task === 'revision-volume') validateTaskRevisionVolume(novelAbs, taskChapter, errors, warnings);
   } else {
@@ -482,6 +491,7 @@ function cmdReview(args) {
     }
 
     reviewCoolPointDensity(novelAbs, chapter, text, results);
+    reviewEmotionalBeatDelivery(novelAbs, chapter, text, results);
     reviewMetaProseLeakage(chapter, text, results);
     reviewAntiPadding(chapter, text, results);
 
@@ -830,12 +840,34 @@ function cmdContext(args) {
 
   const registrySnapshots = writeContextRegistrySnapshots(novelAbs, chapter);
 
+  // 有 snapshot 支持的 registry 文件：当 snapshot 为空时跳过，不回落到原始大文件
+  const SNAPSHOTTED_REGISTRIES = new Set([
+    'registries/foreshadowing.yaml',
+    'registries/hooks.yaml',
+    'registries/open-threads.yaml',
+    'registries/character-state-log.yaml',
+    'registries/world-state-log.yaml',
+    'registries/narrative-sparks.yaml',
+    'registries/emotional-beats.yaml',
+    'registries/cool-points.yaml',
+  ]);
+
   if (mode === 'auto' || mode === 'graph_hybrid') {
     try {
       const { sections } = resolveManifest('chapter-draft', novelRoot, chapter);
+      const novelSlash = novelAbs.replace(/\\/g, '/');
       for (const f of sections.before) {
         const norm = f.replace(/\\/g, '/');
-        files.add(registrySnapshots[norm] || norm);
+        if (registrySnapshots[norm]) {
+          files.add(registrySnapshots[norm]);
+        } else {
+          const rel = norm.startsWith(novelSlash + '/') ? norm.slice(novelSlash.length + 1) : norm;
+          if (SNAPSHOTTED_REGISTRIES.has(rel)) {
+            continue;
+          } else {
+            files.add(norm);
+          }
+        }
       }
       for (const f of sections.optional) {
         if (fs.existsSync(f)) files.add(f.replace(/\\/g, '/'));
@@ -1152,6 +1184,15 @@ switch (command) {
   case 'sync':
     cmdSync(args);
     break;
+  case 'doctor':
+    cmdDoctor(args);
+    break;
+  case 'budget':
+    cmdBudget(args);
+    break;
+  case 'nav':
+    cmdNav(args);
+    break;
   default:
     console.log(`Novel Forge CLI
 
@@ -1171,7 +1212,151 @@ Commands:
   workflow validate                            Check workflow steps vs manifest skills
   relay refresh <stories/id>                   Regenerate state/working/session-relay.md
   sync framework <stories/id>                  Scaffold missing framework files + list gaps
+  doctor <stories/id> [--chapter N]            Context budget + INDEX freshness + loop safety
+  budget <stories/id> [--chapter N]            Per-chapter context budget breakdown
+  nav build|rebuild|lookup <stories/id> [opts] L0 INDEX navigator helpers
 `);
+}
+
+function cmdDoctor(args) {
+  const novelRoot = resolveNovelRootFromArgs(args);
+  const chIdx = args.indexOf('--chapter');
+  const chapter = chIdx !== -1 ? parseInt(args[chIdx + 1], 10) : null;
+  if (!novelRoot) {
+    console.log('Usage: forge doctor <stories/novel-id> [--chapter N]');
+    process.exit(1);
+  }
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  let manifestSections = null;
+  try {
+    if (chapter) {
+      const { sections } = resolveManifest('chapter-draft', novelRoot, chapter);
+      manifestSections = sections;
+    }
+  } catch (_) {}
+  const check = assessContextHealth(novelAbs, chapter, { manifestSections });
+  console.log(formatDoctorReport(novelRoot, check, chapter));
+  writeCircuitState(novelAbs, check.circuit_state);
+  process.exit(check.circuit_state === 'red' ? 2 : 0);
+}
+
+function cmdBudget(args) {
+  const novelRoot = resolveNovelRootFromArgs(args);
+  const chIdx = args.indexOf('--chapter');
+  const chapter = chIdx !== -1 ? parseInt(args[chIdx + 1], 10) : 1;
+  if (!novelRoot) {
+    console.log('Usage: forge budget <stories/novel-id> [--chapter N]');
+    process.exit(1);
+  }
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  const { sections } = resolveManifest('chapter-draft', novelRoot, chapter);
+  const check = assessContextHealth(novelAbs, chapter, { manifestSections: sections });
+  console.log('# Budget | ' + novelRoot + ' | ch-' + padChapter(chapter));
+  console.log('');
+  console.log('## Manifest BEFORE breakdown');
+  let i = 0;
+  for (const meta of sections.beforeMeta) {
+    const exists = fs.existsSync(meta.path);
+    const kb = exists ? Math.ceil(fs.statSync(meta.path).size / 1024) : 0;
+    const src = meta.snapshot ? 'snapshot' : 'full';
+    console.log('  [' + meta.priority.padEnd(8) + '] ' + (exists ? kb + ' KB' : 'MISSING').padEnd(8) + ' ' + src.padEnd(8) + ' ' + meta.path.replace(novelAbs.replace(/\\/g, '/') + '/', ''));
+    i++;
+  }
+  console.log('');
+  console.log(formatDoctorReport(novelRoot, check, chapter));
+}
+
+function cmdNav(args) {
+  const sub = args[0];
+  const rest = args.slice(1);
+  const novelRoot = resolveNovelRootFromArgs(rest);
+  if (!novelRoot) {
+    console.log('Usage:\n  forge nav rebuild <stories/id>\n  forge nav build <stories/id> --chapter N\n  forge nav lookup <stories/id> --id <registry-id>');
+    process.exit(1);
+  }
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  if (sub === 'rebuild') {
+    const reports = rebuildNavIndices(novelAbs);
+    console.log('# Nav rebuild | ' + novelRoot);
+    for (const r of reports) console.log('  ' + r);
+    if (!reports.length) console.log('  ⚠ no INDEX files found — run: pnpm forge sync framework ' + novelRoot);
+    return;
+  }
+  if (sub === 'build') {
+    const chIdx = rest.indexOf('--chapter');
+    const chapter = chIdx !== -1 ? parseInt(rest[chIdx + 1], 10) : 1;
+    const padded = padChapter(chapter);
+    const planDir = path.join(novelAbs, 'state/working');
+    fs.mkdirSync(planDir, { recursive: true });
+    const planPath = path.join(planDir, 'context-plan-ch-' + padded + '.yaml');
+    const { sections } = resolveManifest('chapter-draft', novelRoot, chapter);
+    const check = assessContextHealth(novelAbs, chapter, { manifestSections: sections });
+    const critical = sections.beforeMeta.filter((m) => m.priority === 'critical').map((m) => m.path);
+    const high = sections.beforeMeta.filter((m) => m.priority === 'high').map((m) => m.path);
+    const snapDir = 'state/working/context-snapshot-ch-' + padded;
+    const lines = [];
+    lines.push('chapter: ' + chapter);
+    lines.push('generated_at: "' + new Date().toISOString() + '"');
+    lines.push('budget_estimate_kb: ' + check.total_kb);
+    lines.push('circuit_state: ' + check.circuit_state);
+    lines.push('must_load:');
+    lines.push('  critical:');
+    for (const f of critical) lines.push('    - ' + f.replace(novelAbs.replace(/\\/g, '/') + '/', ''));
+    lines.push('  high:');
+    for (const f of high) lines.push('    - ' + f.replace(novelAbs.replace(/\\/g, '/') + '/', ''));
+    lines.push('  medium_snapshots:');
+    lines.push('    - ' + snapDir + '/foreshadowing-open.yaml');
+    lines.push('    - ' + snapDir + '/hooks-open.yaml');
+    lines.push('    - ' + snapDir + '/cool-points-due.yaml');
+    lines.push('    - ' + snapDir + '/emotional-beats-due.yaml');
+    lines.push('warnings:');
+    for (const w of check.warnings) lines.push('  - "' + w.replace(/"/g, "'") + '"');
+    fs.writeFileSync(planPath, lines.join('\n') + '\n', 'utf8');
+    console.log('# Nav build | ' + novelRoot + ' | ch-' + padded);
+    console.log('  plan: ' + planPath.replace(/\\/g, '/'));
+    console.log('  budget: ' + check.total_kb + ' KB / ' + check.budget.totalKb + ' KB · ' + check.circuit_state);
+    return;
+  }
+  if (sub === 'lookup') {
+    const idIdx = rest.indexOf('--id');
+    if (idIdx === -1) {
+      console.log('Usage: forge nav lookup <stories/id> --id <registry-id>');
+      process.exit(1);
+    }
+    const id = rest[idIdx + 1];
+    const candidates = [
+      'registries/foreshadowing.yaml',
+      'registries/hooks.yaml',
+      'registries/open-threads.yaml',
+      'registries/chekhov-guns.yaml',
+      'registries/cool-points.yaml',
+      'registries/emotional-beats.yaml',
+      'registries/micro-payoffs.yaml',
+      'registries/persona-shifts.yaml',
+      'registries/character-state-log.yaml',
+      'registries/world-state-log.yaml',
+      'registries/narrative-sparks.yaml',
+    ];
+    console.log('# Nav lookup | ' + id);
+    let hits = 0;
+    for (const rel of candidates) {
+      const fp = path.join(novelAbs, rel);
+      if (!fs.existsSync(fp)) continue;
+      const t = loadText(fp) || '';
+      const blockRe = new RegExp('-\\s+id:\\s*' + id + '\\b[\\s\\S]*?(?=\\n-\\s+id:|\\n[a-zA-Z_]+:|$)');
+      const m = t.match(blockRe);
+      if (m) {
+        hits++;
+        console.log('## ' + rel);
+        console.log(m[0].trim());
+        console.log('');
+      }
+    }
+    if (!hits) console.log('  (no matches)');
+    return;
+  }
+  console.error('Unknown nav subcommand: ' + sub);
+  process.exit(1);
 }
 
 function cmdSync(args) {
@@ -1186,7 +1371,9 @@ function cmdSync(args) {
     console.error('missing novel.yaml');
     process.exit(1);
   }
-  const { copied, existing, styleReady, agentTasks } = syncFrameworkScaffolds(novelAbs, { copyMissing: true });
+  const { copied, existing, styleReady, engineReady, agentTasks } = syncFrameworkScaffolds(novelAbs, {
+    copyMissing: true,
+  });
   console.log(`# Sync framework | ${novelRoot}\n`);
   if (copied.length) {
     console.log('## Copied scaffolds from _template');
@@ -1202,9 +1389,13 @@ function cmdSync(args) {
   if (!styleReady.ready) {
     for (const g of styleReady.gaps) console.log(`- ${g}`);
   }
+  console.log(`\n## Story engine ready: ${engineReady.ready ? 'YES' : 'NO'}`);
+  if (!engineReady.ready) {
+    for (const g of engineReady.gaps) console.log(`- ${g}`);
+  }
   if (agentTasks.length) {
     console.log('\n## Agent follow-up');
     for (const t of agentTasks) console.log(`→ ${t}`);
   }
-  process.exit(styleReady.ready ? 0 : 2);
+  process.exit(styleReady.ready && engineReady.ready ? 0 : 2);
 }

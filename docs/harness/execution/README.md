@@ -35,7 +35,7 @@ BEFORE → DURING → AFTER → GATE(handoff+review) → advance
 | [`phases/00b-prose-style.md`](phases/00b-prose-style.md) | creation-chain · prose-style |
 | [`phases/01-worldbuilding.md`](phases/01-worldbuilding.md) | creation-chain · worldbuilding |
 | [`phases/02-characters.md`](phases/02-characters.md) | creation-chain · characters |
-| [`phases/03-outline.md`](phases/03-outline.md) | creation-chain · outline-batch（5 Skill 步） |
+| [`phases/03-outline.md`](phases/03-outline.md) | creation-chain · outline-batch（6 Skill 步） |
 | [`phases/04-foreshadow-hooks.md`](phases/04-foreshadow-hooks.md) | 与 03 交织；registry 分工 |
 | [`phases/05-chapter-draft.md`](phases/05-chapter-draft.md) | chapter-cycle · chapter-draft |
 | [`phases/06-post-chapter.md`](phases/06-post-chapter.md) | chapter-cycle · post-chapter |
@@ -53,8 +53,8 @@ BEFORE → DURING → AFTER → GATE(handoff+review) → advance
 | `characters` | 02a | character-forge |
 | `cast-network` | 02b | cast-network-weaver |
 | `persona-voice` | 02c | persona-voice-binder |
-| `outline-batch` | 03–04 | plot-architect, foreshadow-engineer, hook-manager, batch-planner, retention-analyst |
-| `chapter-draft` | 05 | context-router, chapter-production, dialogue-craftsman |
+| `outline-batch` | 03–04 | plot-architect, conflict-architect, foreshadow-engineer, hook-manager, batch-planner, retention-analyst |
+| `chapter-draft` | 05 | **navigator, context-router, chapter-production, dialogue-craftsman** |
 | `post-chapter` | 06 | continuity-warden, persona-evolution-warden, retention-analyst（`during_write_by_skill` 分责） |
 | `revision-volume` | 07 | chief-editor, style-guardian, patch-refiner, rule-reviewer |
 | `rebuild-canon` | 08 | canon-rebuilder |
@@ -64,3 +64,13 @@ pnpm smoke:all
 ```
 
 模板：`harness/templates/chapter-summary.yaml`、`retention-chapter.yaml`
+
+**字数哲学**：故事合理性优先于字数达标。详见 [`skills/guides/word-count-philosophy.md`](../../../skills/guides/word-count-philosophy.md)
+
+**根项目保护**：防止书籍生产污染根项目。详见 [`docs/ops/root-project-protection.md`](../../ops/root-project-protection.md)
+
+**错误恢复指南**：流程卡住/手稿写坏时的恢复路径。详见 [`docs/ops/error-recovery-guide.md`](../../ops/error-recovery-guide.md)
+
+**单书生命周期**：从创建到归档的完整管理。详见 [`docs/ops/book-lifecycle.md`](../../ops/book-lifecycle.md)
+
+**质量门禁检查清单**：每章/每卷/每书的质量检查。详见 [`docs/ops/quality-gates-checklist.md`](../../ops/quality-gates-checklist.md)

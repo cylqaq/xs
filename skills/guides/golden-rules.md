@@ -14,4 +14,6 @@
 - **禁止**重复章末收束、弧光摘要凑字数
 - handoff / review 失败则 **不得** 进入 continuity
 
+**字数哲学**：故事合理性优先于字数达标。字数是参考指标，不是硬性目标。详见 [`word-count-philosophy.md`](word-count-philosophy.md)
+
 评审：`rule-reviewer` 含 `meta_prose_leakage` + `anti_padding`；人工卷审对照本文件。

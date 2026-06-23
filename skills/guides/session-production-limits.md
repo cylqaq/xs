@@ -1,7 +1,8 @@
 # 会话生产约束（Session Production Limits）
 
 > **性质**：框架硬/软约束，写入 `state/writing-plan.json`，全 Skill 须遵守。  
-> **完整性门禁**：见 [`production-integrity-gates.md`](production-integrity-gates.md)
+> **完整性门禁**：见 [`production-integrity-gates.md`](production-integrity-gates.md)  
+> **字数哲学**：见 [`word-count-philosophy.md`](word-count-philosophy.md) — 故事合理性优先于字数达标
 
 ## 字数
 

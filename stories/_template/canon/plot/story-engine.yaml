@@ -1,0 +1,37 @@
+# 叙事引擎 — 防日记体、贯穿主线
+# 维护：conflict-architect 创建；retention-analyst 检测 diary_drift；batch-planner 绑定 beats
+# 契约：skills/guides/story-engine-protocol.md
+
+throughline:
+  statement: 主角为守住 X 必须在 Y 之前完成 Z，否则失去赌注 W
+  recurrence_rule: 每章至少一处动作/对话/物件回扣 statement 中的赌注或倒计时
+  anti_diary: 禁止连续 3 章仅日常琐事而无 conflict_active 升级或 emotional/cool 兑现
+
+position_conflicts:
+  - id: pc-001
+    title: 示例立场对立
+    sides:
+      - id: faction-a
+        label: 阵营甲
+        voice: 一句代表立场
+      - id: faction-b
+        label: 阵营乙
+        voice: 一句代表立场
+    stakes: 输掉则失去什么
+    escalation:
+      - { phase: opening, chapters: [1, 15], beat: 口头/公示 }
+      - { phase: pressure, chapters: [16, 40], beat: 上门/制度施压 }
+    linked_arc: arc-main
+    status: active
+
+character_tensions:
+  - id: ct-001
+    pair: [char-protagonist, char-antagonist]
+    friction: 想靠近 vs 必须远离
+    turn_chapters: [10, 30, 55]
+    linked_arc: arc-main
+    status: active
+
+diary_drift_watch:
+  window_chapters: 3
+  required_signals: [conflict_active_escalation, cool_or_emotional_delivery]

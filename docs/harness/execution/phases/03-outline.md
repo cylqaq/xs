@@ -2,7 +2,7 @@
 
 **Skill 链（每步隔离会话 + handoff）**：
 
-`plot-architect` → `foreshadow-engineer` → `hook-manager` → `batch-planner` → `retention-analyst`
+`plot-architect` → `conflict-architect` → `foreshadow-engineer` → `hook-manager` → `batch-planner` → `retention-analyst`
 
 workflow：`creation-chain` · manifest：`outline-batch`
 
@@ -18,6 +18,7 @@ pnpm forge next stories/{id}
 | Skill | 写入 |
 |-------|------|
 | plot-architect | `outline.md`、`arcs.yaml` |
+| conflict-architect | `story-engine.yaml`、`emotional-beats.yaml`、cool-points planned、relationship 张力种子 |
 | foreshadow-engineer | `foreshadowing.yaml`、`chekhov-guns.yaml` |
 | hook-manager | `hooks.yaml`、`open-threads.yaml` |
 | batch-planner | `beats/ch-{NNN}.md`、`state/batches/batch-*.yaml` |

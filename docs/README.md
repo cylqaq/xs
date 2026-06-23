@@ -12,6 +12,7 @@
 ## 架构
 
 - [`architecture/pipeline-state-machine.md`](architecture/pipeline-state-machine.md) — 状态机唯一真相源
+- [`architecture/context-budget-system.md`](architecture/context-budget-system.md) — **防雪球：L0 INDEX + 熔断器（第十轮）**
 - [`architecture/unified-pipeline.md`](architecture/unified-pipeline.md) — Skill 编排
 - [`architecture/memory-system.md`](architecture/memory-system.md)
 - [`architecture/story-directory-schema.md`](architecture/story-directory-schema.md)
@@ -19,23 +20,32 @@
 ## 运维
 
 - [`ops/roadmap.md`](ops/roadmap.md)
+- **上下文预算迭代（第十轮）**：[`ops/context-budget-iteration.md`](ops/context-budget-iteration.md)
 - **生产完整性迭代**：[`ops/harness-integrity-iteration.md`](ops/harness-integrity-iteration.md)
+- **叙事引擎迭代**：[`ops/story-engine-iteration.md`](ops/story-engine-iteration.md)
+- **字数哲学**：[`../skills/guides/word-count-philosophy.md`](../skills/guides/word-count-philosophy.md) — 故事合理性优先于字数达标
+- **根项目保护**：[`ops/root-project-protection.md`](ops/root-project-protection.md) — 防止书籍生产污染根项目
+- **错误恢复指南**：[`ops/error-recovery-guide.md`](ops/error-recovery-guide.md) — 流程卡住/手稿写坏时的恢复路径
+- **单书生命周期**：[`ops/book-lifecycle.md`](ops/book-lifecycle.md) — 从创建到归档的完整管理
+- **质量门禁检查清单**：[`ops/quality-gates-checklist.md`](ops/quality-gates-checklist.md) — 每章/每卷/每书的质量检查
 
 ## 每章 Skill 链（drafting）
 
-`context-router` → `chapter-production` → [`dialogue-craftsman` 条件] → `continuity-warden` → `persona-evolution-warden` → `retention-analyst` → `rule-reviewer` → `phase advance`
+**navigator** → `context-router` → `chapter-production` → [`dialogue-craftsman` 条件] → `continuity-warden` → `persona-evolution-warden` → `retention-analyst` → `rule-reviewer` → `phase advance`
 
-开书：`creation-chain` 10 步（见 `skills/README.md`）
+开书：`creation-chain` 14 步（见 `skills/README.md`）
 
 ## 创作任务速查
 
 | 我想… | Skill |
 |-------|-------|
 | 总控 | `@novel-orchestrator` |
+| **写章前体检/防雪球** | `@navigator`（必跑） |
 | seed 问答 | `@seed-intake` |
 | 世界观 | `@world-architect` |
 | 人物 | `@character-forge` |
 | 宏观大纲 | `@plot-architect` |
+| 叙事引擎/对立/爽哭规划 | `@conflict-architect` |
 | 伏笔/钩子 | `@foreshadow-engineer` `@hook-manager` |
 | 分批 beats | `@batch-planner` |
 | 写章 | `@context-router` → `@chapter-production` |

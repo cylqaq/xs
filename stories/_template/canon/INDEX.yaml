@@ -1,0 +1,56 @@
+# Canon 设定导航索引（L0 · 永读 · ≤ 2 KB）
+# 维护：continuity-warden 每章；retention-analyst 卷末复核
+# 协议：docs/architecture/context-budget-system.md
+# 原则：只列「id + 一行 + 路径」，**不抄正文**；超 2 KB 自动收敛
+#
+# 自动化：pnpm forge nav rebuild stories/{id}
+
+version: 2
+last_synced_chapter: 0
+last_rebuilt_at: ""
+
+characters:
+  # 主角与核心配角；其余按 last_seen 滚动收纳到 archive_after_chapters
+  # 范例：
+  # - id: protagonist-001
+  #   role: protagonist           # protagonist | antagonist | major | minor
+  #   file: canon/characters/protagonist-001.md
+  #   one_line: 一句话身份+核心欲望（≤ 30 字）
+  #   last_seen: 0
+  #   state_refs: []              # 指向 character-state-log id
+  #   voice_refs: []              # 指向 voice-matrix id（用于 dialogue-craftsman 快速定位）
+  []
+
+locations:
+  # 仅列已正式登场的；纯背景城市/国家进 world/overview.md
+  # - id: loc-xxx
+  #   file: canon/world/locations/xxx.md
+  #   one_line: 学校屋顶，主角觉醒地
+  #   last_used: 0
+  []
+
+factions:
+  # - id: faction-xxx
+  #   file: canon/world/factions/xxx.md
+  #   one_line: ...
+  #   stance: enemy | ally | neutral
+  []
+
+plot_arcs:
+  # - id: arc-main
+  #   file: canon/plot/arcs.yaml#arc-main
+  #   current_phase: setup | rising | midpoint | climax | resolution
+  #   one_line: 主角追查异能本源
+  []
+
+world_pillars:
+  # 不可违反的硬规则速查（条目数 ≤ 5）
+  # - id: wp-001
+  #   file: canon/world/rules.md#wp-001
+  #   summary: 异能须以体温为代价，超载昏迷
+  []
+
+archive_after_chapters: 10  # 配角 last_seen 超过此阈值移至 archive 段
+archive:
+  # 由 forge nav rebuild 自动收纳
+  []

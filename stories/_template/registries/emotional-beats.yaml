@@ -1,0 +1,13 @@
+# 哭点/虐点/共鸣点登记 — 与 cool-points 互补
+# 维护：conflict-architect 规划；batch-planner beats 引用；retention-analyst 章后 delivered
+# 契约：skills/guides/story-engine-protocol.md
+
+items:
+  - id: eb-001
+    type: gut_punch          # gut_punch | catharsis | bittersweet | dread | relief
+    planned_chapter: 3
+    delivered_chapter: null
+    intensity: 4             # 1–5
+    summary: 角色失去某物后的沉默反应（不写破设定）
+    linked_conflict: ct-001
+    linked_arc: arc-main

@@ -28,6 +28,12 @@ description: >-
 11. **`registries/narrative-sparks.yaml`** 合并 `state/working/sparks/ch-{NNN}-draft.yaml` → `status: captured`
 12. 新人名 → 同步 `cast-roster.yaml`（或标 `new_pending` 交 character-forge）
 13. 若 `appearance-log` 新增节点但 `graph.yaml` 缺边 → 写入 `continuity_flags` 或委派 `cast-network-weaver`
+14. **【第十轮 · 防雪球】维护三份 INDEX**（≤ 6 KB · 见 [`context-budget-protocol.md`](../../guides/context-budget-protocol.md)）：
+    - `canon/INDEX.yaml`：更新出场角色 `last_seen` / `state_refs`；新登场→新增；超 `archive_after_chapters` 移入 archive
+    - `registries/INDEX.yaml`：刷新 `foreshadowing.open_count` / `due_within_5ch` / `hot` 等热条目
+    - `state/memory/INDEX.yaml`：更新 `last_completed_chapter` / `summary_rolling_chars` / `recent_5`
+    - 单文件 ≤ 2 KB；超过须收敛（裁旧条目或仅写 id 引用）
+    - 章后 handoff postflight 自动 `forge nav rebuild` 同步头部时间戳
 
 **不负责**：`cool-points.yaml` delivered（归 `@retention-analyst`）；`persona-shifts` active（归 `@persona-evolution-warden`）；`category: ability` 与 persona 交叉核对（persona-evolution 回写 csl）。
 

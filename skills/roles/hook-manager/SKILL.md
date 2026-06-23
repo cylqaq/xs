@@ -10,12 +10,12 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 11 步 · 读 `@foreshadow-engineer` handoff · 交 `@batch-planner`
+`creation-chain` 第 12 步 · 读 `@foreshadow-engineer` handoff · 交 `@batch-planner`
 
 ## 产出
 
-- `registries/hooks.yaml` — 章末悬念、`must_resolve_by`
-- `registries/open-threads.yaml` — 跨卷承诺
+- `registries/hooks.yaml` — 章末悬念、`must_resolve_by`（须服务 `story-engine` 对立升级，见 [`story-engine-protocol.md`](../../guides/story-engine-protocol.md)）
+- `registries/open-threads.yaml` — 跨卷承诺（挂 `position_conflicts` / `character_tensions`）
 
 ## 状态机
 

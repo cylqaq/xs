@@ -69,7 +69,7 @@ function main() {
     console.error('FAIL: creation-chain missing @prose-style-architect step');
     process.exit(1);
   }
-  console.log('✓ creation-chain 含 prose-style-architect + 人物 3 步 + outline 4 步');
+  console.log('✓ creation-chain 含 prose-style-architect + 人物 3 步 + outline 6 步（含 conflict-architect）');
 
   r = runForge('handoff', 'complete', SMOKE_ID, '--skill', 'fake-skill', '--workflow', 'creation-chain');
   if (r.code === 0) {

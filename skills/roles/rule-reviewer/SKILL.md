@@ -34,4 +34,6 @@ pnpm forge handoff complete stories/{id} --skill rule-reviewer --chapter N
 - `anti_padding` — 重复章末、弧光摘要凑字
 - `wordcount` tier=fail
 
+**字数哲学**：故事合理性优先于字数达标。字数是参考指标，不是硬性目标。详见 [`word-count-philosophy.md`](../../guides/word-count-philosophy.md)
+
 ## 通过后

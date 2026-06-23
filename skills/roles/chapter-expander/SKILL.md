@@ -21,6 +21,7 @@ review `action_items` 中 `dimension: wordcount`
 - 目标字数：`writing-plan.json` 的 **target band**（默认 2000–4500）；硬下限 `minWordsHardFail`（默认 1600）以下才强制介入
 - **禁止**用 meta、重复章末、弧光摘要扩写 — integrity 维 fail 须交 `@patch-refiner`
 - **禁止**为凑字数追加无叙事功能的短句/单字
+- **字数哲学**：故事合理性优先于字数达标。扩写应增强叙事，而非简单增加字数。详见 [`word-count-philosophy.md`](../../guides/word-count-philosophy.md)
 
 ## 流水线
 

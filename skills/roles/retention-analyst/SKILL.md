@@ -17,14 +17,16 @@ description: >-
 
 ## Outline 阶段产出
 
-- `registries/plot-debt.yaml` — 聚合 planned 伏笔/钩子/线程
-- 与 cool-points / micro-payoffs **planned** 对齐
+- `registries/plot-debt.yaml` — 聚合 planned 伏笔/钩子/线程 + **diary_drift** 预警
+- 与 `story-engine.yaml`、`cool-points` / `emotional-beats` / micro-payoffs **planned** 对齐
+- 校验第一 batch：每章 beats 含 `conflict_active` 且 cool/emotional 至少一项
 - handoff postflight：`validate --task outline-batch`
 
 ## 章后产出
 
 1. `registries/cool-points.yaml` — delivered 标记
-2. `registries/micro-payoffs.yaml` — overdue 检测
+2. `registries/emotional-beats.yaml` — delivered 标记
+3. `registries/micro-payoffs.yaml` — overdue 检测
 3. `state/retention/ch-{NNN}.yaml`（见 `harness/templates/retention-chapter.yaml`）
 4. **`state/working/session-collect.yaml`** — ≤3 条向作者追问（剧情洞、新实体、待确认设定）
 5. **`registries/narrative-sparks.yaml`** — 分诊本章 `captured` 火花：评 `narrative_potential`、`impact_tier`；`micro/thread/foreshadow/hook` 可自动晋升；`arc/outline/远期 beat` 写入 session-collect 待 `author_ack`

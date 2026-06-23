@@ -225,6 +225,7 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
   const lines = raw.split(/\r?\n/);
   const sections = {
     before: [],
+    beforeMeta: [],   // {path, priority, optional, snapshot}
     optional: [],
     during: [],
     after: [],
@@ -234,7 +235,16 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
   };
   let current = null;
   let duringSkillKey = null;
+  let pendingBeforeItem = null;  // 用于累积多行 before 条目
   const novelRootSlash = novelAbs.replace(/\\/g, '/');
+
+  const flushBeforeItem = () => {
+    if (pendingBeforeItem) {
+      sections.before.push(pendingBeforeItem.path);
+      sections.beforeMeta.push(pendingBeforeItem);
+      pendingBeforeItem = null;
+    }
+  };
 
   const pushDuring = (absPath, skillKey = null) => {
     const rel = absPath.startsWith(novelRootSlash)
@@ -248,6 +258,11 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
   };
 
   for (const line of lines) {
+    // 检测 section 切换
+    if (line.match(/^[a-z_]+:/) && !line.startsWith(' ')) {
+      flushBeforeItem();
+    }
+
     if (line.startsWith('before:')) {
       current = 'before';
       duringSkillKey = null;
@@ -275,17 +290,42 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
     } else if (current === 'during_by_skill' && line.match(/^  (\S+):$/)) {
       duringSkillKey = line.trim().slice(0, -1);
       if (!sections.duringBySkill[duringSkillKey]) sections.duringBySkill[duringSkillKey] = [];
+    } else if (current === 'before') {
+      // 新格式：- path: "..." 带属性
+      const pathMatch = line.match(/^\s+-\s+path:\s*["']?(.+?)["']?\s*$/);
+      if (pathMatch) {
+        flushBeforeItem();
+        pendingBeforeItem = { path: subst(pathMatch[1]), priority: 'medium', optional: false, snapshot: false };
+      } else if (pendingBeforeItem) {
+        // 解析属性行
+        const prioMatch = line.match(/^\s+priority:\s*(\S+)/);
+        const optMatch = line.match(/^\s+optional:\s*(true)/);
+        const snapMatch = line.match(/^\s+snapshot:\s*(true)/);
+        if (prioMatch) pendingBeforeItem.priority = prioMatch[1];
+        if (optMatch) pendingBeforeItem.optional = true;
+        if (snapMatch) pendingBeforeItem.snapshot = true;
+      } else {
+        // 旧格式：- "{novel_root}/..."
+        const item = subst(line.trim().slice(2).replace(/^["']|["']$/g, ''));
+        if (item) {
+          sections.before.push(item);
+          sections.beforeMeta.push({ path: item, priority: 'medium', optional: false, snapshot: false });
+        }
+      }
     } else if (line.trim().startsWith('- ') && current) {
       const item = subst(line.trim().slice(2).replace(/^["']|["']$/g, ''));
       if (current === 'during_by_skill' && duringSkillKey) {
         pushDuring(item, duringSkillKey);
       } else if (current === 'during') {
         pushDuring(item);
+      } else if (current === 'optional') {
+        if (fs.existsSync(item)) sections.optional.push(item);
       } else if (current && sections[current]) {
         sections[current].push(item);
       }
     }
   }
+  flushBeforeItem();
 
   return { novelAbs, chapter: ch, sections, manifestName };
 }
@@ -386,6 +426,9 @@ export function resolveWordCountPolicy(novelAbs, reviewCfg = null) {
 /**
  * 字数 tier：仅 hardFail 以下 review FAIL；targetMin 以下为 warn（仍 PASS）
  * 避免 2984/3000 边界 thrashing；严重欠幅才交 chapter-expander
+ * 
+ * 字数哲学：故事合理性优先于字数达标。字数是参考指标，不是硬性目标。
+ * 详见 skills/guides/word-count-philosophy.md
  */
 export function evaluateWordcount(wc, policy) {
   const { targetMin, targetMax, hardFail } = policy;
@@ -559,6 +602,27 @@ export function beatsCoolPointRefs(beats) {
   );
 }
 
+export function beatsEmotionalBeatRefs(beats) {
+  return [...beats.matchAll(/emotional_beats.*\[([^\]]+)\]/g)].flatMap((m) =>
+    m[1].split(',').map((s) => s.trim()).filter(Boolean)
+  );
+}
+
+/** Match `- **field**: [x]` or `- field: [x]` with non-empty list */
+export function beatsHasRegistryList(beats, field) {
+  const re = new RegExp(`(?:\\*\\*)?${field}(?:\\*\\*)?:\\s*\\[([^\\]]+)\\]`);
+  const m = beats.match(re);
+  if (!m) return false;
+  return m[1].split(',').some((s) => s.trim().length > 0);
+}
+
+/** Match `- **field**: text` (non-bracket scalar line) */
+export function beatsHasFieldLine(beats, field) {
+  const re = new RegExp(`(?:\\*\\*)?${field}(?:\\*\\*)?:\\s*(.+)`);
+  const m = beats.match(re);
+  return Boolean(m?.[1]?.trim().length > 2);
+}
+
 export function parseBeatsItems(beats) {
   const section = beats.split('## Beats')[1] || beats;
   return [...section.matchAll(/^\d+\.\s+(.+)$/gm)].map((m) => m[1].trim());
@@ -587,9 +651,20 @@ const OPEN_FORESHADOW = new Set(['planned', 'planted', 'hinted']);
 const OPEN_HOOK = new Set(['open', 'partially_addressed']);
 const ACTIVE_STATE = new Set(['active']);
 
+/** 检查过滤后的 YAML 是否为空（items/entries/sparks 列表无条目） */
+function isFilteredYamlEmpty(filtered) {
+  return !filtered || !/-\s+id:\s*\S/.test(filtered);
+}
+
+function yamlIdBlocks(yamlText) {
+  return [...yamlText.matchAll(/(?:^|\n)\s*(-\s+id:[\s\S]*?)(?=\n\s*-\s+id:|\n[a-zA-Z_][\w-]*:\s*|$)/g)].map(
+    (m) => m[1]
+  );
+}
+
 function filterYamlEntries(yamlText, listKey, predicate) {
   if (!yamlText?.trim()) return `${listKey}: []\n`;
-  const blocks = [...yamlText.matchAll(/(^|\n)(-\s+id:[\s\S]*?)(?=\n-\s+id:|\n\w+:|$)/g)].map((m) => m[2]);
+  const blocks = yamlIdBlocks(yamlText);
   const kept = blocks.filter((b) => {
     const id = b.match(/id:\s*(\S+)/)?.[1];
     return id && predicate(b);
@@ -607,77 +682,92 @@ export function writeContextRegistrySnapshots(novelAbs, chapter) {
   fs.mkdirSync(snapDir, { recursive: true });
   const out = {};
 
+  function writeSnap(snapName, origPath, filtered) {
+    if (isFilteredYamlEmpty(filtered)) return;
+    const snap = path.join(snapDir, snapName);
+    fs.writeFileSync(snap, filtered, 'utf8');
+    out[origPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+  }
+
   const fsPath = path.join(novelAbs, 'registries/foreshadowing.yaml');
   const fsText = loadText(fsPath);
   if (fsText) {
-    const filtered = filterYamlItems(fsText, (b) => {
+    writeSnap('foreshadowing-open.yaml', fsPath, filterYamlItems(fsText, (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
-      return status && OPEN_FORESHADOW.has(status);
-    });
-    const snap = path.join(snapDir, 'foreshadowing-open.yaml');
-    fs.writeFileSync(snap, filtered, 'utf8');
-    out[fsPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+      if (!(status && OPEN_FORESHADOW.has(status))) return false;
+      const plantCh = parseInt(b.match(/plant_chapter:\s*(\d+)/)?.[1] || '0', 10);
+      return plantCh <= chapter;
+    }));
   }
 
   const hkPath = path.join(novelAbs, 'registries/hooks.yaml');
   const hkText = loadText(hkPath);
   if (hkText) {
-    const filtered = filterYamlItems(hkText, (b) => {
+    writeSnap('hooks-open.yaml', hkPath, filterYamlItems(hkText, (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
-      return status && OPEN_HOOK.has(status);
-    });
-    const snap = path.join(snapDir, 'hooks-open.yaml');
-    fs.writeFileSync(snap, filtered, 'utf8');
-    out[hkPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+      if (!(status && OPEN_HOOK.has(status))) return false;
+      const hkCh = parseInt(b.match(/chapter:\s*(\d+)/)?.[1] || '0', 10);
+      return hkCh <= chapter;
+    }));
   }
 
   const otPath = path.join(novelAbs, 'registries/open-threads.yaml');
   const otText = loadText(otPath);
   if (otText) {
-    const filtered = filterYamlItems(otText, (b) => {
+    writeSnap('open-threads-active.yaml', otPath, filterYamlItems(otText, (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
-      return !status || status === 'open' || status === 'active';
-    });
-    const snap = path.join(snapDir, 'open-threads-active.yaml');
-    fs.writeFileSync(snap, filtered, 'utf8');
-    out[otPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+      if (!(status === 'open' || status === 'active')) return false;
+      const otCh = parseInt(b.match(/opened_chapter:\s*(\d+)/)?.[1] || '0', 10);
+      return otCh <= chapter;
+    }));
   }
 
   const cslPath = path.join(novelAbs, 'registries/character-state-log.yaml');
   const cslText = loadText(cslPath);
   if (cslText) {
-    const filtered = filterYamlEntries(cslText, 'entries', (b) => {
+    writeSnap('character-state-active.yaml', cslPath, filterYamlEntries(cslText, 'entries', (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
       return status && ACTIVE_STATE.has(status);
-    });
-    const snap = path.join(snapDir, 'character-state-active.yaml');
-    fs.writeFileSync(snap, filtered, 'utf8');
-    out[cslPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+    }));
   }
 
   const wslPath = path.join(novelAbs, 'registries/world-state-log.yaml');
   const wslText = loadText(wslPath);
   if (wslText) {
-    const filtered = filterYamlEntries(wslText, 'entries', (b) => {
+    writeSnap('world-state-active.yaml', wslPath, filterYamlEntries(wslText, 'entries', (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
       return status && ACTIVE_STATE.has(status);
-    });
-    const snap = path.join(snapDir, 'world-state-active.yaml');
-    fs.writeFileSync(snap, filtered, 'utf8');
-    out[wslPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+    }));
   }
 
   const nkPath = path.join(novelAbs, 'registries/narrative-sparks.yaml');
   const nkText = loadText(nkPath);
   if (nkText) {
     const OPEN_SPARK = new Set(['captured', 'triaged', 'deferred']);
-    const filtered = filterYamlEntries(nkText, 'sparks', (b) => {
+    writeSnap('narrative-sparks-open.yaml', nkPath, filterYamlEntries(nkText, 'sparks', (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
       return status && OPEN_SPARK.has(status);
-    });
-    const snap = path.join(snapDir, 'narrative-sparks-open.yaml');
-    fs.writeFileSync(snap, filtered, 'utf8');
-    out[nkPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+    }));
+  }
+
+  const ebPath = path.join(novelAbs, 'registries/emotional-beats.yaml');
+  const ebText = loadText(ebPath);
+  if (ebText) {
+    writeSnap('emotional-beats-due.yaml', ebPath, filterYamlItems(ebText, (b) => {
+      const planned = parseInt(b.match(/planned_chapter:\s*(\d+)/)?.[1] || '0', 10);
+      const delivered = b.match(/delivered_chapter:\s*(\d+|null)?/)?.[1];
+      return planned === chapter && (!delivered || delivered === 'null');
+    }));
+  }
+
+  const cpPath = path.join(novelAbs, 'registries/cool-points.yaml');
+  const cpText = loadText(cpPath);
+  if (cpText) {
+    writeSnap('cool-points-due.yaml', cpPath, filterYamlItems(cpText, (b) => {
+      const planned = parseInt(b.match(/planned_chapter:\s*(\d+)/)?.[1] || '0', 10);
+      const delivered = b.match(/delivered_chapter:\s*(\d+|null)?/)?.[1];
+      return planned === chapter && (!delivered || delivered === 'null');
+    }));
   }
 
   return out;
@@ -909,6 +999,11 @@ const FRAMEWORK_SCAFFOLD_PATHS = [
   'canon/style/exemplars/positive.md',
   'canon/style/exemplars/negative.md',
   'state/checkpoints/prose-style.yaml',
+  'canon/plot/story-engine.yaml',
+  'registries/emotional-beats.yaml',
+  'canon/INDEX.yaml',
+  'registries/INDEX.yaml',
+  'state/memory/INDEX.yaml',
 ];
 
 export function countYamlListItems(text, key) {
@@ -1043,11 +1138,36 @@ export function syncFrameworkScaffolds(novelAbs, { copyMissing = true } = {}) {
     }
   }
   const styleReady = assessProseStyleReadiness(novelAbs);
+  const engineReady = assessStoryEngineReadiness(novelAbs);
   const agentTasks = [];
   if (!styleReady.ready) {
     agentTasks.push('@prose-style-architect — 填满 canon/style 与 prose-profile status:ready');
   }
-  return { copied, existing, styleReady, agentTasks };
+  if (!engineReady.ready) {
+    agentTasks.push('@conflict-architect — 填满 story-engine.yaml + emotional-beats + cool-points planned');
+  }
+  return { copied, existing, styleReady, engineReady, agentTasks };
+}
+
+/** Story engine scaffold filled (not placeholder). */
+export function assessStoryEngineReadiness(novelAbs) {
+  const gaps = [];
+  const enginePath = path.join(novelAbs, 'canon/plot/story-engine.yaml');
+  if (!fs.existsSync(enginePath)) {
+    gaps.push('missing canon/plot/story-engine.yaml');
+    return { ready: false, gaps };
+  }
+  const engine = loadText(enginePath) || '';
+  const stmt = engine.match(/statement:\s*(.+)/)?.[1]?.trim() || '';
+  if (stmt.length < 12 || /主角为守住 X/.test(stmt)) {
+    gaps.push('story-engine throughline.statement 仍为模板占位');
+  }
+  if (countYamlListItems(engine, 'position_conflicts') < 1) {
+    gaps.push('story-engine 缺 position_conflicts');
+  }
+  const ebPath = path.join(novelAbs, 'registries/emotional-beats.yaml');
+  if (!fs.existsSync(ebPath)) gaps.push('missing registries/emotional-beats.yaml');
+  return { ready: gaps.length === 0, gaps };
 }
 
 export function gateDraftingEntry(novelAbs, errors) {
@@ -1155,9 +1275,42 @@ export function validateTaskPersonaVoice(novelAbs, errors, warnings = []) {
   }
 }
 
-export function validateTaskOutlineBatch(novelAbs, chapter, errors) {
+export function validateTaskOutlineBatch(novelAbs, chapter, errors, warnings = []) {
   const beatsPath = path.join(novelAbs, `canon/plot/beats/ch-${padChapter(chapter)}.md`);
   if (!fs.existsSync(beatsPath)) errors.push(`outline-batch: missing beats ch-${padChapter(chapter)}`);
+
+  const enginePath = path.join(novelAbs, 'canon/plot/story-engine.yaml');
+  if (!fs.existsSync(enginePath)) {
+    errors.push('outline-batch: missing canon/plot/story-engine.yaml — run @conflict-architect');
+  } else {
+    const engine = loadText(enginePath) || '';
+    if (!/throughline:/.test(engine) || !/statement:/.test(engine)) {
+      errors.push('outline-batch: story-engine.yaml missing throughline.statement');
+    }
+    if (countYamlListItems(engine, 'position_conflicts') < 1) {
+      warnings.push('outline-batch: story-engine needs >=1 position_conflicts');
+    }
+    if (countYamlListItems(engine, 'character_tensions') < 1) {
+      warnings.push('outline-batch: story-engine needs >=1 character_tensions');
+    }
+  }
+
+  if (!fs.existsSync(path.join(novelAbs, 'registries/emotional-beats.yaml'))) {
+    warnings.push('outline-batch: missing registries/emotional-beats.yaml');
+  }
+
+  const beats = loadText(beatsPath) || '';
+  if (beats && !beatsHasRegistryList(beats, 'conflict_active')) {
+    warnings.push(`outline-batch: ch-${padChapter(chapter)} beats missing conflict_active`);
+  }
+  if (beats && !beatsHasFieldLine(beats, 'throughline_touch')) {
+    warnings.push(`outline-batch: ch-${padChapter(chapter)} beats missing throughline_touch`);
+  }
+  const hasCp = beatsHasRegistryList(beats, 'cool_points');
+  const hasEb = beatsHasRegistryList(beats, 'emotional_beats');
+  if (beats && !hasCp && !hasEb) {
+    warnings.push(`outline-batch: ch-${padChapter(chapter)} beats need cool_points or emotional_beats`);
+  }
 }
 
 export function validateTaskRebuild(novelAbs, errors) {
@@ -1231,6 +1384,7 @@ export function validateRegistryConsistency(novelAbs, lastCompleted, errors, war
   const fsIds = registryIds(loadText(path.join(novelAbs, 'registries/foreshadowing.yaml')));
   const hkIds = registryIds(loadText(path.join(novelAbs, 'registries/hooks.yaml')));
   const cpIds = registryIds(loadText(path.join(novelAbs, 'registries/cool-points.yaml')));
+  const ebIds = registryIds(loadText(path.join(novelAbs, 'registries/emotional-beats.yaml')));
   const cgIds = registryIds(loadText(path.join(novelAbs, 'registries/chekhov-guns.yaml')));
 
   for (let ch = 1; ch <= lastCompleted; ch++) {
@@ -1249,6 +1403,11 @@ export function validateRegistryConsistency(novelAbs, lastCompleted, errors, war
     for (const m of beats.matchAll(/cool_points:\s*\[([^\]]+)\]/g)) {
       for (const id of m[1].split(',').map((s) => s.trim())) {
         if (id && !cpIds.has(id)) errors.push(`ch-${padChapter(ch)} beats refs unknown cool-point ${id}`);
+      }
+    }
+    for (const m of beats.matchAll(/emotional_beats:\s*\[([^\]]+)\]/g)) {
+      for (const id of m[1].split(',').map((s) => s.trim())) {
+        if (id && !ebIds.has(id)) errors.push(`ch-${padChapter(ch)} beats refs unknown emotional-beat ${id}`);
       }
     }
   }
@@ -1611,10 +1770,40 @@ export function reviewCoolPointDensity(novelAbs, chapter, text, results) {
   }
 }
 
+export function reviewEmotionalBeatDelivery(novelAbs, chapter, text, results) {
+  const beats = loadText(path.join(novelAbs, `canon/plot/beats/ch-${padChapter(chapter)}.md`)) || '';
+  const refs = beatsEmotionalBeatRefs(beats);
+  if (!refs.length) {
+    results.dimensions.push({ id: 'emotional_beat_delivery', pass: true, msg: 'no emotional_beats in beats' });
+    return;
+  }
+  const ebYaml = loadText(path.join(novelAbs, 'registries/emotional-beats.yaml')) || '';
+  const undelivered = refs.filter((id) => {
+    const block = ebYaml.match(new RegExp(`-\\s+id:\\s*${id}[\\s\\S]*?(?=\\n-\\s+id:|$)`));
+    if (!block) return true;
+    const delivered = parseInt(block[0].match(/delivered_chapter:\s*(\d+)/)?.[1] || '0', 10);
+    return delivered !== chapter;
+  });
+  const pass = undelivered.length === 0;
+  results.dimensions.push({
+    id: 'emotional_beat_delivery',
+    pass,
+    msg: pass ? `registry_delivered=${refs.length}` : `undelivered=${undelivered.join(',')}`,
+  });
+  if (!pass) {
+    pushActionItem(results, {
+      dimension: 'emotional_beat_delivery',
+      delegate_skill: 'patch-refiner',
+      message: 'beats 登记的情绪节拍未在本章兑现',
+      hint: '更新 registries/emotional-beats.yaml delivered_chapter 或补写哭点/共鸣场景',
+    });
+  }
+}
+
 /** 正文 meta 规则（登记册/章号/框架术语不得进 manuscripts） */
 export const PROSE_META_RULES = [
   { re: /\bch\d+\b/gi, label: '章编号 meta (chN)' },
-  { re: /\b(hk|fs|ot|cg|cp|pd)-\d{3}\b/gi, label: '登记册 id 泄漏' },
+  { re: /\b(hk|fs|ot|cg|cp|eb|pd)-\d{3}\b/gi, label: '登记册 id 泄漏' },
   { re: /表世界/g, label: '框架术语「表世界」' },
   { re: /缺陷链/g, label: '框架术语「缺陷链」' },
   { re: /这本书/g, label: '打破第四墙「这本书」' },
@@ -1829,6 +2018,8 @@ ${agents ? agents.split('\n').filter((l) => l.includes('铁律') || l.match(/^\d
 
 \`\`\`bash
 pnpm forge next ${novelRoot.replace(/\\/g, '/')}
+pnpm forge doctor ${novelRoot.replace(/\\/g, '/')} --chapter ${currentCh}
+pnpm forge nav build ${novelRoot.replace(/\\/g, '/')} --chapter ${currentCh}
 pnpm forge manifest chapter-draft ${novelRoot.replace(/\\/g, '/')} --chapter ${currentCh}
 pnpm forge relay refresh ${novelRoot.replace(/\\/g, '/')}
 \`\`\`
@@ -1839,8 +2030,10 @@ pnpm forge relay refresh ${novelRoot.replace(/\\/g, '/')}
 Novel Forge 续写《${title}》· id=${id}
 书目录：${novelRoot.replace(/\\/g, '/')}
 请先读：state/working/session-relay.md → harness/read-order.md → AGENTS.md
-再执行：pnpm forge next "${novelRoot.replace(/\\/g, '/')}"
-只扮演一个 Skill；单会话≤${plan.maxChaptersPerSession}章正文。
+再执行：
+  pnpm forge doctor "${novelRoot.replace(/\\/g, '/')}" --chapter ${currentCh}
+  pnpm forge next "${novelRoot.replace(/\\/g, '/')}"
+只扮演一个 Skill；单会话≤${plan.maxChaptersPerSession}章正文；circuit_state=red 须先 forge nav rebuild。
 \`\`\`
 
 详见 \`harness/SESSION-START.md\` 与框架 \`skills/guides/new-session-onboarding.md\`

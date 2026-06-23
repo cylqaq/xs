@@ -10,7 +10,7 @@ description: >-
 
 ## 工作流位置
 
-`creation-chain` 第 9 步 · 读 `@persona-voice-binder` handoff · 交 `@foreshadow-engineer`
+`creation-chain` 第 9 步 · 读 `@persona-voice-binder` handoff · 交 `@conflict-architect`
 
 ## 前置门禁
 

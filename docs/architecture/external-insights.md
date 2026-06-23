@@ -54,3 +54,7 @@
 ## 新增 Skill（本项目自有）
 
 见 `skills/roles/seed-intake`、`dialogue-craftsman`、`chapter-expander`。
+
+**字数哲学**：故事合理性优先于字数达标。详见 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md)
+
+**根项目保护**：防止书籍生产污染根项目。详见 [`docs/ops/root-project-protection.md`](../ops/root-project-protection.md)

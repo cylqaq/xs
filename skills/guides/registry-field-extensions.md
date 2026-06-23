@@ -15,7 +15,7 @@
 | relationship-tracking | **新增** `registries/relationship-tracking.yaml`（信任度 delta，补 graph 边） |
 | scene-registry | 可选；长篇启用，beats 已含场景时不必重复 |
 | pacing-metrics | 归入 `state/retention/ch-NNN.yaml`，不单独文件 |
-| emotional-beat | 归入 chapter-summary + retention，不单独文件 |
+| emotional-beat | **`registries/emotional-beats.yaml`**（第九轮）；章后 retention 标 delivered |
 
 ## 可扩展字段（在对应 registry item 上追加）
 
@@ -59,6 +59,14 @@ summary 可增加：`total_planted`, `total_resolved`, `critical_debt_items`, `r
 ### world-state-log.yaml
 
 `entity_type`, `entity_id`, `reversible`, `callback_potential`, `linked_refs`
+
+### emotional-beats.yaml
+
+`type` (gut_punch|catharsis|bittersweet|dread|relief), `planned_chapter`, `delivered_chapter`, `intensity`, `linked_conflict`, `linked_arc`
+
+### cool-points.yaml（补充）
+
+`linked_conflict` — 与 story-engine 对立 id 交叉引用
 
 ### narrative-sparks.yaml
 

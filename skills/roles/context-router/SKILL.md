@@ -9,7 +9,16 @@ description: >-
 
 ## 工作流位置
 
-`chapter-cycle` 第 1 步 · 交 `@chapter-production`
+`chapter-cycle` **第 1 步**（紧随 `@navigator` 之后） · 读 navigator 输出的 `state/working/context-plan-ch-{NNN}.yaml` · 交 `@chapter-production`
+
+## 与 navigator 的分工（第十轮）
+
+| Skill | 读 | 写 | 任务 |
+|-------|----|----|------|
+| navigator | L0 INDEX 三件套 + beats | context-plan-ch-N.yaml | 决定**读哪些** |
+| context-router | context-plan + state/context-mode.yaml | 更新 last_selected | 决定**用什么模式**（auto/graph_hybrid/bm25） |
+
+router **不再加载全 manifest BEFORE**；以 navigator 的 plan 为准，按需补 mode 特定文件。
 
 ## 流程
 
@@ -44,7 +53,14 @@ description: >-
 - `canon/style/voice.md`
 - `canon/style/exemplars/positive.md`（若已填）
 
-见 [`skills/guides/prose-style-protocol.md`](../../guides/prose-style-protocol.md)、[`character-persona-chain.md`](../../guides/character-persona-chain.md)、[`state-evolution-chain.md`](../../guides/state-evolution-chain.md)
+## 叙事引擎 JIT（必含 · 防日记体）
+
+- `canon/plot/story-engine.yaml` — throughline + 本章相关对立
+- 本章 beats 的 `conflict_active` / `throughline_touch`
+- `registries/cool-points.yaml` + `registries/emotional-beats.yaml` 中本章 planned 未 delivered 项
+- `registries/relationship-tracking.yaml` 中涉及本章角色的 active 张力
+
+见 [`story-engine-protocol.md`](../../guides/story-engine-protocol.md)、[`prose-style-protocol.md`](../../guides/prose-style-protocol.md)、[`character-persona-chain.md`](../../guides/character-persona-chain.md)、[`state-evolution-chain.md`](../../guides/state-evolution-chain.md)
 
 ## 多智能体交接
 

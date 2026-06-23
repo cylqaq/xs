@@ -1,12 +1,25 @@
 # 单章多智能体微循环 — 各 Skill 隔离对话，只经 handoff + 协议文件协作
 workflow: chapter-cycle
-description: context-router → chapter-production → [dialogue] → continuity → persona-evolution → retention → rule-reviewer → phase advance
+description: navigator → context-router → chapter-production → [dialogue] → continuity → persona-evolution → retention → rule-reviewer → phase advance
 
 steps:
+  - id: navigate
+    skill: navigator
+    manifest: chapter-draft
+    isolation: true
+    cli_preflight:
+      - doctor --chapter {chapter}
+      - nav build --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/ch-{chapter_padded}-navigator.yaml
+    note: 第十轮新增 · 读 INDEX 输出 context-plan，防雪球
+
   - id: route-context
     skill: context-router
     manifest: chapter-draft
     isolation: true
+    reads_handoff:
+      - navigator
     cli_preflight:
       - manifest chapter-draft --chapter {chapter}
       - context --chapter {chapter}
@@ -108,3 +121,12 @@ steps:
     handoff_writes:
       - state/working/handoffs/ch-{chapter_padded}-novel-orchestrator.yaml
     note: review PASS 后执行 forge phase advance --chapter {chapter}（自动写本步 handoff）
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

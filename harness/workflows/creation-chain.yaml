@@ -1,6 +1,6 @@
 # 开书创建链 — 每 Skill 隔离会话，handoff 后方可进入下一步
 workflow: creation-chain
-description: ideation → prose-style → worldbuilding → characters（3 Skill）→ outline（5 Skill）→ drafting 入口
+description: ideation → prose-style → worldbuilding → characters（3 Skill）→ outline（6 Skill，含 conflict-architect）→ drafting 入口
 
 steps:
   - id: orchestrate-open
@@ -121,12 +121,24 @@ steps:
     handoff_writes:
       - state/working/handoffs/creation-plot-architect.yaml
 
+  - id: conflict-engine
+    skill: conflict-architect
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - plot-architect
+    requires_files:
+      - canon/plot/story-engine.yaml
+      - registries/emotional-beats.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-conflict-architect.yaml
+
   - id: foreshadow
     skill: foreshadow-engineer
     manifest: outline-batch
     isolation: true
     reads_handoff:
-      - plot-architect
+      - conflict-architect
     requires_files:
       - registries/foreshadowing.yaml
       - registries/chekhov-guns.yaml
@@ -169,3 +181,12 @@ steps:
       - validate --task outline-batch --chapter {chapter}
     handoff_writes:
       - state/working/handoffs/creation-retention-analyst.yaml
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

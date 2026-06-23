@@ -1,0 +1,116 @@
+# 上下文预算 v2（第十轮 · 防雪球 + AI Loop 安全栓）
+# 协议：docs/architecture/context-budget-system.md
+# 实现：harness/scripts/forge-lib.mjs:loadContextBudget / enforceContextBudget
+#
+# 核心改动 vs v1：
+# 1) navigation_first：所有 Skill 须先读 L0 INDEX 三件套（≤ 6 KB）
+# 2) hard_total_cap：超即触发熔断；不再「软超」无声
+# 3) loop_safety：AI Loop 三道断路器（章上限/停滞/成本/压力）
+# 4) source: from_index — manifest 内 medium/low 改为 INDEX 命中后按需拉
+
+version: 2
+
+# ─────────────────────────────────────────────────────────────
+# 总预算
+# ─────────────────────────────────────────────────────────────
+total_budget_kb: 60
+hard_total_cap_kb: 72          # 超过即熔断（circuit_state=red），强制 navigator 模式
+warn_at_ratio: 0.85            # 实际/预算 ≥ 此值时 circuit=yellow + 推荐降级
+
+# ─────────────────────────────────────────────────────────────
+# 导航优先（第十轮新增）
+# ─────────────────────────────────────────────────────────────
+navigation_first: true
+nav_index_files:
+  - canon/INDEX.yaml             # ≤ 2 KB
+  - registries/INDEX.yaml        # ≤ 2 KB
+  - state/memory/INDEX.yaml      # ≤ 1 KB
+nav_total_cap_kb: 6
+nav_max_age_chapters: 5          # INDEX 超过 5 章未更新 → forge doctor WARN
+
+# ─────────────────────────────────────────────────────────────
+# 优先级与单类配额
+# ─────────────────────────────────────────────────────────────
+priorities:
+  critical:
+    description: 本章 beats、前一章摘要、本章出场角色声线、文笔合约、叙事引擎 — 永不裁剪
+    max_kb: 30
+  high:
+    description: 世界观规则、出场角色卡、本章 conflict 子集
+    max_kb: 20
+  medium:
+    description: 开放伏笔/钩子/状态登记 snapshot（按 INDEX 命中后注入）
+    max_kb: 16
+    source: from_index            # 不再默认全量；navigator 按 INDEX 决定
+  low:
+    description: glossary / outline-amendments / novel.yaml / phase.yaml
+    max_kb: 2
+    source: on_demand             # 默认不读；Skill 用 forge nav lookup 显式取
+
+# ─────────────────────────────────────────────────────────────
+# 降级策略
+# ─────────────────────────────────────────────────────────────
+degradation:
+  strategy: priority_cascade
+  l2_max_chars: 500
+  l3_max_chars: 100
+  exempt_patterns:
+    - canon/plot/beats/ch-*.md
+    - state/memory/summary-rolling.md
+    - state/memory/chapter-summaries/ch-*.yaml
+    - canon/style/voice.md
+    - canon/style/prose-profile.yaml
+    - canon/INDEX.yaml
+    - registries/INDEX.yaml
+    - state/memory/INDEX.yaml
+
+# ─────────────────────────────────────────────────────────────
+# snapshot 注册表（仍生效，但限制条数）
+# ─────────────────────────────────────────────────────────────
+snapshot_registries:
+  - registries/foreshadowing.yaml
+  - registries/hooks.yaml
+  - registries/open-threads.yaml
+  - registries/character-state-log.yaml
+  - registries/world-state-log.yaml
+  - registries/narrative-sparks.yaml
+  - registries/emotional-beats.yaml
+  - registries/cool-points.yaml
+
+snapshot_limits:
+  max_items_per_file: 25         # snapshot 单文件最多 25 条；超出按 due_within_5ch 排序裁剪
+  prefer_due_within_chapters: 5
+
+# ─────────────────────────────────────────────────────────────
+# AI Loop 安全栓（第十轮新增 · 防 24×7 失控）
+# 参考：addyosmani Loop Engineering / Anthropic context engineering
+# ─────────────────────────────────────────────────────────────
+loop_safety:
+  max_chapters_per_session: 2     # 单会话章上限（与 writing-plan.json 同步）
+  stall_chapters: 3               # 连续 3 章无新 beats/伏笔兑现 → retention 强介入
+  cost_ceiling_usd_per_chapter: 5.0  # 单章 token 成本警戒（warn）
+  consecutive_review_fail: 3      # 连续 3 轮 review FAIL → blocked
+  context_pressure:
+    yellow_ratio: 0.85            # 触发推荐降级
+    red_ratio: 1.0                # 触发熔断（拒绝继续加载，要求 navigator 重组）
+  empty_loop_guard_minutes: 30    # 30 分钟无文件写入视为空转（仅外部 watchdog 用）
+
+# ─────────────────────────────────────────────────────────────
+# Navigator sub-agent 行为（取代「context-router 全 manifest 读」）
+# ─────────────────────────────────────────────────────────────
+navigator:
+  enabled: true
+  output_max_lines: 200          # navigator 返回给主 Skill 的清单最多 200 行
+  must_read_indices: true        # 强制先读 INDEX 再决定
+  fallback_when_index_missing: legacy_manifest  # 旧书无 INDEX 时回落（WARN）
+
+# ─────────────────────────────────────────────────────────────
+# 字数哲学与根项目保护（新增）
+# ─────────────────────────────────────────────────────────────
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

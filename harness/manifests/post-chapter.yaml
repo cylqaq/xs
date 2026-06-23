@@ -1,8 +1,16 @@
 task: post-chapter
-description: 章后记忆维护 JIT 清单（continuity / persona-evolution / retention 分责）
+description: 章后记忆维护 JIT 清单（v2 · 含 INDEX 同步责任）
+
+nav_required:
+  - canon/INDEX.yaml
+  - registries/INDEX.yaml
+  - state/memory/INDEX.yaml
 
 before:
   - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+  - "{novel_root}/canon/INDEX.yaml"
+  - "{novel_root}/registries/INDEX.yaml"
+  - "{novel_root}/state/memory/INDEX.yaml"
   - "{novel_root}/canon/characters/index.yaml"
   - "{novel_root}/canon/timeline/master.yaml"
   - "{novel_root}/registries/foreshadowing.yaml"
@@ -12,6 +20,8 @@ before:
   - "{novel_root}/registries/plot-debt.yaml"
   - "{novel_root}/registries/chekhov-guns.yaml"
   - "{novel_root}/registries/cool-points.yaml"
+  - "{novel_root}/registries/emotional-beats.yaml"
+  - "{novel_root}/canon/plot/story-engine.yaml"
   - "{novel_root}/canon/characters/voice-matrix.yaml"
   - "{novel_root}/registries/persona-shifts.yaml"
   - "{novel_root}/registries/appearance-log.yaml"
@@ -30,6 +40,9 @@ during_write_by_skill:
   continuity-warden:
     - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
     - "{novel_root}/state/memory/summary-rolling.md"
+    - "{novel_root}/state/memory/INDEX.yaml"      # 新增：必须同步
+    - "{novel_root}/canon/INDEX.yaml"             # 新增：last_seen / state_refs 同步
+    - "{novel_root}/registries/INDEX.yaml"        # 新增：open_count / due_within_5ch 同步
     - "{novel_root}/registries/continuity-log.yaml"
     - "{novel_root}/registries/appearance-log.yaml"
     - "{novel_root}/registries/character-state-log.yaml"
@@ -49,8 +62,10 @@ during_write_by_skill:
     - "{novel_root}/state/working/session-collect.yaml"
     - "{novel_root}/registries/narrative-sparks.yaml"
     - "{novel_root}/registries/cool-points.yaml"
+    - "{novel_root}/registries/emotional-beats.yaml"
     - "{novel_root}/registries/micro-payoffs.yaml"
     - "{novel_root}/registries/plot-debt.yaml"
+    - "{novel_root}/registries/INDEX.yaml"        # 新增：plot_debt 摘要写入 INDEX
 
 after_must_update:
   - "{novel_root}/novel.yaml"
@@ -59,3 +74,13 @@ after_must_update:
 validators:
   - continuity
   - registry-consistency
+  - context-budget
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

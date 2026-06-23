@@ -13,6 +13,7 @@ stories/{novel-id}/
 ├── harness/
 │   └── read-order.md          # 本书当前阶段读序（覆盖全局默认）
 ├── canon/                     # 【事实层 M3】审慎更新
+│   ├── INDEX.yaml             # 【L0 导航 · 第十轮】设定速查（≤ 2 KB · 永读）
 │   ├── world/
 │   │   ├── overview.md        # 世界概览
 │   │   ├── rules.md           # 硬规则（魔法/科技/社会）
@@ -30,6 +31,7 @@ stories/{novel-id}/
 │   │   └── master.yaml        # 事件序：id, ch, time, summary
 │   ├── plot/
 │   │   ├── outline.md         # 宏观结构（三幕/四部等）
+│   │   ├── story-engine.yaml  # 叙事发动机：throughline、立场/人物对立
 │   │   ├── outline-amendments.md  # 大纲补丁日志（append-only）
 │   │   ├── arcs.yaml          # 故事弧
 │   │   └── beats/             # ch-{nnn}.md 章节拍表
@@ -41,12 +43,14 @@ stories/{novel-id}/
 ├── canon/entities/
 │   └── graph.yaml             # 实体图（graph_hybrid）
 ├── registries/                # 【追踪层 M4】高频更新
+│   ├── INDEX.yaml             # 【L0 导航 · 第十轮】登记速查（≤ 2 KB · 永读）
 │   ├── foreshadowing.yaml
 │   ├── hooks.yaml
 │   ├── chekhov-guns.yaml
 │   ├── open-threads.yaml
 │   ├── plot-debt.yaml         # 情节债务仪表
 │   ├── cool-points.yaml       # 爽点
+│   ├── emotional-beats.yaml   # 哭点/虐点/共鸣节拍
 │   ├── micro-payoffs.yaml     # 微兑现
 │   ├── continuity-log.yaml
 │   ├── appearance-log.yaml    # 出场章记录
@@ -67,6 +71,7 @@ stories/{novel-id}/
 │   │   ├── session-collect.yaml  # 章后待作者确认（retention-analyst）
 │   │   └── sparks/               # 章内火花草稿 ch-{NNN}-draft.yaml
 │   ├── memory/
+│   │   ├── INDEX.yaml         # 【L0 导航 · 第十轮】记忆速查（≤ 1 KB · 永读）
 │   │   ├── summary-rolling.md
 │   │   ├── chapter-summaries/
 │   │   └── keyword-index.json # BM25 兜底
@@ -86,6 +91,9 @@ stories/{novel-id}/
 
 | 目录 | 回答的问题 | 谁写 | 谁读 |
 |------|-----------|------|------|
+| `canon/INDEX.yaml` | 设定速查导航（L0） | continuity-warden | 所有 Skill 永读 |
+| `registries/INDEX.yaml` | 登记速查导航（L0） | continuity-warden + retention-analyst | 所有 Skill 永读 |
+| `state/memory/INDEX.yaml` | 记忆速查导航（L0） | continuity-warden | 所有 Skill 永读 |
 | `seed/` | 作者想讲什么 | 人 | seed-intake / bootstrap |
 | `canon/style` | 叙述文笔、套话禁令、范例 | prose-style-architect | 写章 context / review |
 | `canon/world` | 世界是什么 | world-architect | 全员 JIT |
@@ -98,12 +106,15 @@ stories/{novel-id}/
 | `canon/plot/outline-amendments` | 宏观大纲补丁（append-only） | plot-architect / retention（ack 后） | 批次规划前 |
 | `registries/appearance-log` | 出场记录 | cast-network / continuity-warden | 写章前/后 |
 | `canon/plot` | 结构与时序 | plot-architect | 写章前 |
+| `canon/plot/story-engine` | 贯穿发动机与对立矩阵 | conflict-architect | 写章前 JIT |
 | `registries/foreshadowing` | 埋了什么、何时收 | foreshadow-engineer | 写章前/后 |
 | `registries/hooks` | 读者被什么吊着 | hook-manager | 写章前/后 |
 | `state/memory` | 前文压缩 | continuity-warden | 每章必读 |
 | `manuscripts` | 读者看到的正文 | chapter-production | 人类 |
 
 **解耦规则**：`manuscripts` 不得包含未同步到 `canon` 或 `registries` 的「秘密设定」；秘密只活在 `registries`（planned）或 `canon`（已成立）。
+
+**L0 INDEX 规则（第十轮）**：三份 INDEX 是「导航页」，单文件 ≤ 2 KB、合计 ≤ 6 KB；只列 id / 一行 / 路径 / 关键章号，**不抄正文**。由 `continuity-warden` 章后维护，`forge nav rebuild` 强制再生。详见 [`context-budget-system.md`](context-budget-system.md)。
 
 ## novel.yaml 最小字段
 
@@ -121,3 +132,7 @@ target_chapters: 120
 ## 登记册条目示例
 
 见 `stories/_template/registries/*.yaml`。
+
+**字数哲学**：故事合理性优先于字数达标。详见 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md)
+
+**根项目保护**：防止书籍生产污染根项目。详见 [`docs/ops/root-project-protection.md`](../ops/root-project-protection.md)

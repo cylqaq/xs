@@ -17,6 +17,7 @@
 | 4b | beats_coverage | 编号 beats 与手稿关键词覆盖 ≥70% | chapter-production |
 | 5 | wordcount | tier=ok/warn/long **PASS**；tier=fail 低于 `minWordsHardFail`（默认 1600） | chapter-expander |
 | 6 | cool_point_density | beats `cool_points[]` → registry `delivered_chapter`；无登记时关键词兜底 | patch-refiner |
+| 6b | emotional_beat_delivery | beats `emotional_beats[]` → registry `delivered_chapter` | patch-refiner |
 | 7 | pov_consistency | frontmatter pov vs voice.md（同行） | patch-refiner |
 | 8 | meta_prose_leakage | 正文框架/meta 泄漏（chN、登记册 id、表世界等） | patch-refiner |
 | 8b | anti_padding | 重复章末收束、弧光摘要凑字 | patch-refiner |
@@ -42,3 +43,5 @@
 ## 通过后
 
 `forge phase advance stories/{id} --chapter N`（需 review PASS + 章后产物齐全）。
+
+**字数哲学**：故事合理性优先于字数达标。字数是参考指标，不是硬性目标。详见 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md)

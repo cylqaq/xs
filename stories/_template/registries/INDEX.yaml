@@ -1,0 +1,63 @@
+# Registries 登记册导航索引（L0 · 永读 · ≤ 2 KB）
+# 维护：continuity-warden + retention-analyst 章后同步
+# 协议：docs/architecture/context-budget-system.md
+# 原则：只列「热条目 + 计数 + 即将到期 id」；详情仍在各 registries/*.yaml
+#
+# 自动化：pnpm forge nav rebuild stories/{id}
+
+version: 2
+last_synced_chapter: 0
+last_rebuilt_at: ""
+
+foreshadowing:
+  open_count: 0
+  due_within_5ch: []         # 5 章内须兑现的 id 列表
+  abandoned_recent: []       # 最近 3 章 status=abandoned 的 id
+  index_summary: []          # 仅 open 状态条目的「id + plant_ch + due_ch + 一句」
+
+hooks:
+  open_count: 0
+  hot: []                    # 当前章相关
+  closed_recent: []
+
+open_threads:
+  active_count: 0
+  due_within_5ch: []
+
+chekhov_guns:
+  active_count: 0
+  due_within_5ch: []
+
+cool_points:
+  due_this_batch: []         # 本批次 planned 未 delivered
+  delivered_recent: []
+
+emotional_beats:
+  due_this_batch: []
+  delivered_recent: []
+
+micro_payoffs:
+  open_count: 0
+  due_within_3ch: []
+
+plot_debt:
+  overdue: 0
+  critical: 0
+  recommended_actions: []    # 由 retention-analyst 章后写
+
+character_state_log:
+  active_count: 0
+  hot_refs: []               # 本章相关 active 条目
+
+world_state_log:
+  active_count: 0
+  hot_refs: []
+
+narrative_sparks:
+  inbox_count: 0
+  promoted_recent: []
+  high_tier_pending: []      # impact_tier=arc/outline 且未 author_ack
+
+persona_shifts:
+  active_count: 0
+  triggering_this_chapter: []  # trigger_chapter == 本章

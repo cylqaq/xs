@@ -46,6 +46,11 @@ flowchart TD
 ### L1 Skill / 指南
 
 - 新增 [`skills/guides/production-integrity-gates.md`](../../skills/guides/production-integrity-gates.md)
+- 新增 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md) — 字数哲学：故事合理性优先
+- 新增 [`docs/ops/root-project-protection.md`](root-project-protection.md) — 根项目保护规范
+- 新增 [`docs/ops/error-recovery-guide.md`](error-recovery-guide.md) — 错误恢复指南
+- 新增 [`docs/ops/book-lifecycle.md`](book-lifecycle.md) — 单书生命周期管理
+- 新增 [`docs/ops/quality-gates-checklist.md`](quality-gates-checklist.md) — 质量门禁检查清单
 - 更新 `chapter-production`、`rule-reviewer`、`session-production-limits`、`golden-rules`、`handoff-protocol`
 - 更新 `AGENTS.md` 铁律
 
@@ -62,12 +67,12 @@ flowchart TD
 ## 三、chapter-cycle 强制路径（不可合并）
 
 ```
-context-router → chapter-production → [dialogue] → continuity → persona → retention → rule-reviewer → advance
-                      ↑ draft check + integrity 硬门禁
-                                              ↑ review 全维 PASS
+navigator → context-router → chapter-production → [dialogue] → continuity → persona → retention → rule-reviewer → advance
+                                    ↑ draft check + integrity 硬门禁
+                                                              ↑ review 全维 PASS
 ```
 
-**禁止**：单会话连写 >2 章、跳过 handoff、自宣布 review PASS。
+**禁止**：单会话连写 >2 章、跳过 handoff、自宣布 review PASS、跳过 navigator 直接写章（第十轮新增）。
 
 ## 四、机械校验（改完必跑）
 

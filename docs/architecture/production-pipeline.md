@@ -71,3 +71,7 @@ flowchart TD
 - 篇幅预期
 
 其余由框架追问并写入 canon，**不强迫用户填表**。
+
+**字数哲学**：故事合理性优先于字数达标。详见 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md)
+
+**根项目保护**：防止书籍生产污染根项目。详见 [`docs/ops/root-project-protection.md`](../../ops/root-project-protection.md)

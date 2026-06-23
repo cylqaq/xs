@@ -23,6 +23,7 @@ description: >-
 
 - `manuscripts/chapters/ch-{NNN}.md`
 - Frontmatter: chapter, title, pov, timeline_marker
+- 落实 beats 的 `conflict_active` / `throughline_touch`；兑现 `cool_points` / `emotional_beats`（章后由 retention 标 delivered）
 - 埋伏笔/钩子 → 同步 `registries/` status
 - **叙事火花**：写章中若涌现 beats 未覆盖的小情节/物件/关系微变 → 写入 `state/working/sparks/ch-{NNN}-draft.yaml`（≤5 条/章，见 [`narrative-spark-protocol.md`](../../guides/narrative-spark-protocol.md)）
 
@@ -38,6 +39,8 @@ pnpm forge draft check stories/{id} --chapter N
 - tier **warn**（1600–1999，未达目标 2000）：可 handoff；优先扩 **beats 中段**，禁止章末堆字
 - tier **fail**（低于 `minWordsHardFail` 1600）：不得 handoff → `@chapter-expander`
 - **integrity fail**：不得 handoff → 删 meta/重复章末后重跑 draft check
+
+**字数哲学**：故事合理性优先于字数达标。字数是参考指标，不是硬性目标。详见 [`word-count-philosophy.md`](../../guides/word-count-philosophy.md)
 
 见 [`production-integrity-gates.md`](../../guides/production-integrity-gates.md)
 

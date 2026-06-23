@@ -8,6 +8,7 @@
 ```bash
 pnpm smoke:all
 pnpm forge workflow validate
+pnpm forge doctor stories/_template --chapter 1   # 第十轮 · 预算 + INDEX 体检
 ```
 
 ## 1. 开书
@@ -38,15 +39,17 @@ pnpm forge intake questions stories/{your-id}   # ideation
 pnpm forge intake check stories/{your-id}
 ```
 
-**creation-chain 顺序**：orchestrator → seed-intake → bootstrap → **prose-style** → world → character → plot → foreshadow → hook → batch → retention
+**creation-chain 顺序**：orchestrator → seed-intake → bootstrap → **prose-style** → world → character（3 步）→ plot → **conflict** → foreshadow → hook → batch → retention
 
-旧书若缺文笔契约：`pnpm forge sync framework stories/{your-id}` → `@prose-style-architect`
+旧书若缺文笔契约或 INDEX：`pnpm forge sync framework stories/{your-id}` → `@prose-style-architect` / `@conflict-architect`
 
 ## 2. 首章连载
 
 确认 `phase: drafting`，`canon/plot/beats/ch-001.md` 存在。
 
 ```bash
+# 推荐先 doctor 体检（防雪球）
+pnpm forge doctor stories/{your-id} --chapter 1
 pnpm forge run stories/{your-id} --workflow chapter-cycle --chapter 1
 ```
 
@@ -54,13 +57,15 @@ pnpm forge run stories/{your-id} --workflow chapter-cycle --chapter 1
 
 | 步 | Skill | 关键产物 |
 |----|-------|----------|
+| 0 | **navigator** | `state/working/context-plan-ch-001.yaml`（**第十轮新增** · 防雪球） |
 | 1 | context-router | context 快照 |
 | 2 | chapter-production | `manuscripts/chapters/ch-001.md` |
 | 3 | dialogue-craftsman | 仅 beats 含对话时 |
-| 4 | continuity-warden | summary + registries |
-| 5 | retention-analyst | `state/retention/ch-001.yaml` |
-| 6 | rule-reviewer | `state/reviews/ch-001.json` PASS |
-| 7 | novel-orchestrator | `phase advance --chapter 1` |
+| 4 | continuity-warden | summary + registries + **更新三份 INDEX** |
+| 5 | persona-evolution-warden | persona-shifts active |
+| 6 | retention-analyst | `state/retention/ch-001.yaml` + `INDEX.plot_debt` |
+| 7 | rule-reviewer | `state/reviews/ch-001.json` PASS |
+| 8 | novel-orchestrator | `phase advance --chapter 1` |
 
 每步：`forge next` → 工作 → `forge handoff complete --skill … --chapter 1`
 
@@ -70,20 +75,29 @@ pnpm forge run stories/{your-id} --workflow chapter-cycle --chapter 1
 - [ ] `state/working/handoffs/` 本章各 Skill 均为 `complete`
 - [ ] `phase.yaml` → `last_completed_chapter: 1`
 - [ ] 登记册与 `continuity-log` 已更新
+- [ ] `state/memory/INDEX.yaml` 的 `circuit_state: green`（`forge doctor` 验证）
 
 ## 4. 失败路径
 
 review FAIL → `forge next` 路由 `patch-cycle` → 按 `delegate_skill` 修补 → 再 `rule-reviewer` handoff（≤3 轮）
 
+doctor 报 `circuit_state: red` → `forge nav rebuild` 或 `forge sync framework` 补 INDEX
+
 ## 5. 正式测试后发现框架问题
 
-1. 先记清改了哪一层（Skill / workflow / manifest / 文档 / 脚本）
+1. 先记清改了哪一层（INDEX / Skill / workflow / manifest / 文档 / 脚本）
 2. 按 [`layer-sync-contract.md`](../harness/layer-sync-contract.md) 迭代检查表同步其余层
-3. `pnpm forge workflow validate` + `pnpm smoke:all`
+3. `pnpm forge workflow validate` + `pnpm forge doctor stories/_template --chapter 1` + `pnpm smoke:all`
 4. 更新 [`roadmap.md`](roadmap.md)
 
 ## 参考
 
-- 五层联动：[`layer-sync-contract.md`](../harness/layer-sync-contract.md)
+- 五层联动（含 L0 INDEX）：[`layer-sync-contract.md`](../harness/layer-sync-contract.md)
 - 状态机：[`pipeline-state-machine.md`](../architecture/pipeline-state-machine.md)
+- **防雪球**：[`context-budget-system.md`](../architecture/context-budget-system.md)
 - 框架现状：[`framework-status.md`](framework-status.md)
+- **字数哲学**：[`../../skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md) — 故事合理性优先于字数达标
+- **根项目保护**：[`root-project-protection.md`](root-project-protection.md) — 防止书籍生产污染根项目
+- **错误恢复指南**：[`error-recovery-guide.md`](error-recovery-guide.md) — 流程卡住/手稿写坏时的恢复路径
+- **单书生命周期**：[`book-lifecycle.md`](book-lifecycle.md) — 从创建到归档的完整管理
+- **质量门禁检查清单**：[`quality-gates-checklist.md`](quality-gates-checklist.md) — 每章/每卷/每书的质量检查

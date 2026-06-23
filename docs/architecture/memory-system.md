@@ -95,3 +95,5 @@ LLM 的上下文窗口是 **易失工作内存**。长篇小说失败的主因�
 - Harness Engineering：filesystem 持久化、写后验证、子任务隔离
 - ETCLOVG 之 Context / Verification / Lifecycle 层
 - 「Ralph Loop」：每章新上下文 + 从文件恢复状态
+- **字数哲学**：故事合理性优先于字数达标（详见 [`skills/guides/word-count-philosophy.md`](../../skills/guides/word-count-philosophy.md)）
+- **根项目保护**：防止书籍生产污染根项目（详见 [`docs/ops/root-project-protection.md`](../ops/root-project-protection.md)）
