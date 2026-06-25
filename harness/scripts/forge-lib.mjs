@@ -625,7 +625,24 @@ export function beatsHasFieldLine(beats, field) {
 
 export function parseBeatsItems(beats) {
   const section = beats.split('## Beats')[1] || beats;
-  return [...section.matchAll(/^\d+\.\s+(.+)$/gm)].map((m) => m[1].trim());
+  const items = [];
+  const lines = section.split(/\r?\n/);
+  let currentItem = '';
+  
+  for (const line of lines) {
+    const mainMatch = line.match(/^\d+\.\s+(.+)$/);
+    if (mainMatch) {
+      if (currentItem) items.push(currentItem);
+      currentItem = mainMatch[1].trim();
+    } else if (line.match(/^\s+-\s+(.+)$/)) {
+      // 合并子项内容用于关键词匹配，提升 beats_coverage 容错率
+      const subItem = line.match(/^\s+-\s+(.+)$/)[1].trim();
+      currentItem += ' ' + subItem;
+    }
+  }
+  if (currentItem) items.push(currentItem);
+  
+  return items;
 }
 
 /** Characters with appear_in containing chapter or beats-referenced id */
@@ -1704,7 +1721,7 @@ export function reviewBeatsCoverage(novelAbs, chapter, text, results) {
       .map((m) => m[0])
       .filter((w) => !COMMON_ZH.has(w) && w.length >= 2);
     if (!keywords.length) continue;
-    if (!keywords.some((kw) => text.includes(kw))) missed.push(beat.slice(0, 24));
+    if (!keywords.some((kw) => text.includes(kw))) missed.push(beat.split(/\s/).slice(0, 6).join(' '));
   }
   const threshold = Math.ceil(items.length * loadReviewConfig().beatsCoverageRatio);
   const covered = items.length - missed.length;

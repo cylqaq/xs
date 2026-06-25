@@ -1,0 +1,21 @@
+# 状态文件（临时生成，不提交）
+state/working/
+state/reviews/
+state/revisions/
+state/snapshots/
+
+# 但保留目录结构
+!state/working/.gitkeep
+!state/reviews/.gitkeep
+!state/revisions/.gitkeep
+!state/snapshots/.gitkeep
+
+# 本地配置
+.forge-root
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

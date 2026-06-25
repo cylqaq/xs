@@ -4,7 +4,8 @@
 
 ## 正式生成（优先）
 
-- **首跑清单**：[`ops/first-run-checklist.md`](ops/first-run-checklist.md)
+- **开书快速指南**：[`ops/quickstart-new-book.md`](ops/quickstart-new-book.md) — 一页纸开书流程
+- **首跑清单**：[`ops/first-run-checklist.md`](ops/first-run-checklist.md) — 详细步骤和验收清单
 - **五层联动契约**：[`harness/layer-sync-contract.md`](harness/layer-sync-contract.md) — 改 Skill/workflow/文档必查
 - **框架现状**：[`ops/framework-status.md`](ops/framework-status.md)
 - **Skill 团队**：[`../skills/README.md`](../skills/README.md)

@@ -31,21 +31,38 @@ Skill、`harness/workflows/`、`harness/manifests/`、执行 phases、状态机*
 | `stories/_template/` | 新书骨架 |
 | `stories/{novel-id}/` | 一部小说的全部 Canon、登记册、手稿 |
 
+## 根项目定位
+
+**根项目是母版**，用于：
+1. **启动新项目**：从模板创建新的书籍项目
+2. **完善设定**：在创建子项目前收集和整理设定
+3. **框架迭代**：更新 Skill、工作流、CLI 工具
+4. **文档维护**：更新框架文档和模板
+
+**子项目一旦创建完成，后续写作应直接在子项目中进行，不再染指根项目。**
+
 ## 写小说时的铁律
 
-0. **每轮先 next** — `pnpm forge next stories/{id}` 决定当前 Skill；多智能体完成后 `pnpm forge handoff complete`
-0a. **每章先 doctor + nav** — `pnpm forge doctor stories/{id} --chapter N` 看 circuit_state；新会话/yellow 必跑 `pnpm forge nav build`（防雪球）
-1. **开书先 intake** — `pnpm forge intake questions` 多轮收 seed（含文笔字段），`forge intake check` PASS 后才 novel-bootstrap → **prose-style-architect**
-2. **先 context + manifest，再动笔** — `pnpm forge context` + `pnpm forge manifest`
-3. **只改手稿与 state** — `canon/` 须经 continuity 流程更新，禁止凭记忆覆盖
-3a. **新会话先读** `state/working/session-relay.md`（`pnpm forge relay refresh`）
-3b. **单会话≤2章正文** · **integrity 硬门禁** — `pnpm forge draft check` 须 integrity ok 才可 production handoff（见 `production-integrity-gates.md`）
-3c. **正文禁止 meta** — 登记册 id / chN / 表世界 等不得进 `manuscripts/`
-4. **登记册必同步** — 伏笔/钩子/爽点/**哭点 emotional-beats**/微兑现/plot-debt/character-state-log/world-state-log/**narrative-sparks** 章后更新
-5. **章后链** — continuity-warden → persona-evolution-warden → retention-analyst → **review**
-6. **review 失败** — `forge next` 进入 `patch-cycle`；按 `action_items.delegate_skill` 修补（revision 三元组自动脚手架），≤3 轮否则 blocked
-7. **章完成** — rule-reviewer handoff（须 review PASS）→ `forge phase advance --chapter N`（写 `@novel-orchestrator` handoff；高优 session-collect 须 `author_ack` 或 `--ack-session-collect`）
-8. **禁止**在未更新 `continuity-log.yaml` 的情况下声称「已回收伏笔」
+### 在根项目中（创建和设定阶段）
+
+0. **开书先 intake** — `pnpm forge intake questions` 多轮收 seed（含文笔字段），`forge intake check` PASS 后才 novel-bootstrap → **prose-style-architect**
+1. **先 context + manifest，再动笔** — `pnpm forge context` + `pnpm forge manifest`
+2. **创建子项目** — `cp -r stories/_template "e:/个人/写书/{novel-id}"`
+
+### 在子项目中（写作阶段）
+
+3. **直接在子项目启动** — `cd e:/个人/写书/{novel-id}`，使用本地 `node forge.mjs`
+4. **每轮先 next** — `node forge.mjs next .` 决定当前 Skill；多智能体完成后 `node forge.mjs handoff complete .`
+5. **每章先 doctor + nav** — `node forge.mjs doctor . --chapter N` 看 circuit_state；新会话/yellow 必跑 `node forge.mjs nav build .`（防雪球）
+6. **只改手稿与 state** — `canon/` 须经 continuity 流程更新，禁止凭记忆覆盖
+7. **新会话先读** `state/working/session-relay.md`（`node forge.mjs relay refresh .`）
+8. **单会话≤2章正文** · **integrity 硬门禁** — `node forge.mjs draft check .` 须 integrity ok 才可 production handoff（见 `production-integrity-gates.md`）
+9. **正文禁止 meta** — 登记册 id / chN / 表世界 等不得进 `manuscripts/`
+10. **登记册必同步** — 伏笔/钩子/爽点/**哭点 emotional-beats**/微兑现/plot-debt/character-state-log/world-state-log/**narrative-sparks** 章后更新
+11. **章后链** — continuity-warden → persona-evolution-warden → retention-analyst → **review**
+12. **review 失败** — `forge next` 进入 `patch-cycle`；按 `action_items.delegate_skill` 修补（revision 三元组自动脚手架），≤3 轮否则 blocked
+13. **章完成** — rule-reviewer handoff（须 review PASS）→ `forge phase advance --chapter N`（写 `@novel-orchestrator` handoff；高优 session-collect 须 `author_ack` 或 `--ack-session-collect`）
+14. **禁止**在未更新 `continuity-log.yaml` 的情况下声称「已回收伏笔」
 
 ## Canonical Docs
 

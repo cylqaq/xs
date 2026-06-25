@@ -14,6 +14,15 @@
 - **不是**单本书的创作环境
 - **不是**临时文件的存放处
 
+### 1.3 根项目的核心定位
+根项目是**母版**，用于：
+1. **启动新项目**：从模板创建新的书籍项目
+2. **完善设定**：在创建子项目前收集和整理设定
+3. **框架迭代**：更新 Skill、工作流、CLI 工具
+4. **文档维护**：更新框架文档和模板
+
+**子项目一旦创建完成，后续写作应直接在子项目中进行，不再染指根项目。**
+
 ## 二、书籍项目的正确位置
 
 ### 2.1 书籍项目路径
@@ -33,7 +42,9 @@
 ├── state/          # 状态文件（memory、phase.yaml 等）
 ├── seed/           # 初始种子文件
 ├── AGENTS.md       # 本书 Agent 入口
-└── novel.yaml      # 本书元数据
+├── novel.yaml      # 本书元数据
+├── forge.mjs       # CLI Wrapper（可独立运行）
+└── .forge-root     # 根项目路径配置
 ```
 
 ## 三、根项目保护规则
@@ -52,7 +63,7 @@
 
 ## 四、正确的工作流程
 
-### 4.1 开始新书
+### 4.1 开始新书（在根项目中）
 ```bash
 # 1. 在根项目目录启动
 cd e:\my-project\novel-forge
@@ -60,20 +71,27 @@ cd e:\my-project\novel-forge
 # 2. 复制模板到书籍目录
 cp -r stories/_template "e:/个人/写书/{novel-id}"
 
-# 3. 在书籍目录中开始创作
+# 3. 在书籍目录中开始设定收集
 pnpm forge intake questions "e:/个人/写书/{novel-id}"
+
+# 4. 完善设定，直到 intake check PASS
+pnpm forge intake check "e:/个人/写书/{novel-id}"
+
+# 5. 运行 bootstrap 和 prose-style
+pnpm forge next "e:/个人/写书/{novel-id}"
 ```
 
-### 4.2 日常创作
+### 4.2 日常创作（在子项目中）
 ```bash
-# 1. 始终在根项目目录启动
-cd e:\my-project\novel-forge
+# 1. 直接在书籍目录启动
+cd e:/个人/写书/{novel-id}
 
-# 2. 使用绝对路径指向书籍目录
-pnpm forge doctor "e:/个人/写书/{novel-id}" --chapter N
-pnpm forge manifest chapter-draft "e:/个人/写书/{novel-id}" --chapter N
+# 2. 使用本地 forge.mjs 执行命令
+node forge.mjs doctor . --chapter N
+node forge.mjs manifest chapter-draft . --chapter N
+node forge.mjs next .
 
-# 3. 在 Cursor 中工作时，确保工作区是根项目
+# 3. 在 Cursor 中工作时，确保工作区是书籍目录
 ```
 
 ### 4.3 迭代根项目能力
@@ -105,22 +123,51 @@ pnpm forge manifest chapter-draft "e:/个人/写书/{novel-id}" --chapter N
 
 ## 七、示例
 
-### 7.1 正确示例
+### 7.1 正确示例：新书创建（在根项目中）
 ```bash
-# 在根项目目录启动，使用绝对路径指向书籍目录
+# 在根项目目录启动，创建新书
 cd e:\my-project\novel-forge
-pnpm forge doctor "e:/个人/写书/dungeon-echo" --chapter 1
+cp -r stories/_template "e:/个人/写书/my-new-novel"
+pnpm forge intake questions "e:/个人/写书/my-new-novel"
 ```
 
-### 7.2 错误示例
+### 7.2 正确示例：日常写作（在子项目中）
 ```bash
-# 错误：在书籍目录启动
-cd "e:/个人/写书/dungeon-echo"
-pnpm forge doctor . --chapter 1
+# 直接在书籍目录启动，使用本地 forge.mjs
+cd e:/个人/写书/dungeon-echo
+node forge.mjs doctor . --chapter 1
+node forge.mjs next .
+```
 
+### 7.3 错误示例
+```bash
 # 错误：在根项目下创建书籍文件
 cd e:\my-project\novel-forge
 mkdir stories/my-novel  # 应该在 e:/个人/写书/ 下创建
+
+# 错误：在根项目下运行书籍命令（不使用绝对路径）
+cd e:\my-project\novel-forge
+pnpm forge doctor . --chapter 1  # 应该使用绝对路径
 ```
 
-**记住**：根项目是母版，书籍项目是实例。保持分离，避免污染。
+## 八、子项目独立运行说明
+
+### 8.1 forge.mjs Wrapper
+每个子项目都包含一个 `forge.mjs` wrapper 脚本，用于：
+- 自动找到根项目的位置
+- 将 `.` 或相对路径转换为绝对路径
+- 委托根项目的 CLI 执行命令
+
+### 8.2 .forge-root 配置
+每个子项目都包含一个 `.forge-root` 文件，用于：
+- 指定根项目的路径
+- 支持环境变量覆盖（`NOVEL_FORGE_ROOT`）
+- 支持默认路径回退
+
+### 8.3 独立运行的好处
+1. **隔离性**：子项目不会污染根项目
+2. **便携性**：子项目可以移动到任何位置
+3. **独立性**：子项目可以在不同的 Cursor 会话中独立运行
+4. **清晰性**：每个项目都有明确的边界
+
+**记住**：根项目是母版，书籍项目是实例。创建完成后，子项目应独立运行，不再依赖根项目的会话。
