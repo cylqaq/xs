@@ -29,6 +29,8 @@ before:
   - "{novel_root}/registries/world-state-log.yaml"
   - "{novel_root}/registries/narrative-sparks.yaml"
   - "{novel_root}/canon/entities/graph.yaml"
+  - "{novel_root}/registries/character-arcs.yaml"
+  - "{novel_root}/registries/character-resonance.yaml"
 
 skills:
   - continuity-warden
@@ -57,6 +59,7 @@ during_write_by_skill:
   persona-evolution-warden:
     - "{novel_root}/registries/persona-shifts.yaml"
     - "{novel_root}/canon/characters/voice-matrix.yaml"
+    - "{novel_root}/registries/character-arcs.yaml"
   retention-analyst:
     - "{novel_root}/state/retention/ch-{chapter_padded}.yaml"
     - "{novel_root}/state/working/session-collect.yaml"
@@ -66,6 +69,7 @@ during_write_by_skill:
     - "{novel_root}/registries/micro-payoffs.yaml"
     - "{novel_root}/registries/plot-debt.yaml"
     - "{novel_root}/registries/INDEX.yaml"        # 新增：plot_debt 摘要写入 INDEX
+    - "{novel_root}/registries/character-resonance.yaml"
 
 after_must_update:
   - "{novel_root}/novel.yaml"

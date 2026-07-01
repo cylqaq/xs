@@ -81,6 +81,8 @@ import {
   loadNavIndices,
   assessContextHealth,
   rebuildNavIndices,
+  convergeNavIndices,
+  auditSnapshots,
   formatDoctorReport,
   writeCircuitState,
 } from './context-budget-lib.mjs';
@@ -850,6 +852,7 @@ function cmdContext(args) {
     'registries/narrative-sparks.yaml',
     'registries/emotional-beats.yaml',
     'registries/cool-points.yaml',
+    'registries/appearance-log.yaml',
   ]);
 
   if (mode === 'auto' || mode === 'graph_hybrid') {
@@ -1193,6 +1196,9 @@ switch (command) {
   case 'nav':
     cmdNav(args);
     break;
+  case 'snapshot':
+    cmdSnapshot(args);
+    break;
   default:
     console.log(`Novel Forge CLI
 
@@ -1214,7 +1220,8 @@ Commands:
   sync framework <stories/id>                  Scaffold missing framework files + list gaps
   doctor <stories/id> [--chapter N]            Context budget + INDEX freshness + loop safety
   budget <stories/id> [--chapter N]            Per-chapter context budget breakdown
-  nav build|rebuild|lookup <stories/id> [opts] L0 INDEX navigator helpers
+  nav build|rebuild|lookup|converge <stories/id> [opts] L0 INDEX navigator helpers
+  snapshot audit <stories/id> --chapter N      Snapshot quality audit (compression/missing)
 `);
 }
 
@@ -1254,13 +1261,41 @@ function cmdBudget(args) {
   console.log('# Budget | ' + novelRoot + ' | ch-' + padChapter(chapter));
   console.log('');
   console.log('## Manifest BEFORE breakdown');
-  let i = 0;
+  const padded = padChapter(chapter);
+  const snapDir = path.join(novelAbs, 'state/working/context-snapshot-ch-' + padded);
+
+  // snapshot 文件名映射
+  const SNAP_NAME_MAP = {
+    'foreshadowing.yaml': 'foreshadowing-open.yaml',
+    'hooks.yaml': 'hooks-open.yaml',
+    'open-threads.yaml': 'open-threads-active.yaml',
+    'character-state-log.yaml': 'character-state-active.yaml',
+    'world-state-log.yaml': 'world-state-active.yaml',
+    'narrative-sparks.yaml': 'narrative-sparks-open.yaml',
+    'emotional-beats.yaml': 'emotional-beats-due.yaml',
+    'cool-points.yaml': 'cool-points-due.yaml',
+    'appearance-log.yaml': 'appearance-recent.yaml',
+  };
+
   for (const meta of sections.beforeMeta) {
     const exists = fs.existsSync(meta.path);
-    const kb = exists ? Math.ceil(fs.statSync(meta.path).size / 1024) : 0;
-    const src = meta.snapshot ? 'snapshot' : 'full';
-    console.log('  [' + meta.priority.padEnd(8) + '] ' + (exists ? kb + ' KB' : 'MISSING').padEnd(8) + ' ' + src.padEnd(8) + ' ' + meta.path.replace(novelAbs.replace(/\\/g, '/') + '/', ''));
-    i++;
+    let kb = exists ? Math.ceil(fs.statSync(meta.path).size / 1024) : 0;
+    let src = meta.source === 'on_demand' ? 'on_demand' : (meta.snapshot ? 'snapshot' : 'full');
+
+    // 对于snapshot文件，显示snapshot大小
+    if (meta.snapshot && exists) {
+      const basename = path.basename(meta.path);
+      const snapName = SNAP_NAME_MAP[basename] || basename;
+      const snapPath = path.join(snapDir, snapName);
+      if (fs.existsSync(snapPath)) {
+        const snapKb = Math.ceil(fs.statSync(snapPath).size / 1024);
+        src = 'snap✓';
+        kb = snapKb;
+      }
+    }
+
+    const skipReason = meta.source === 'on_demand' ? ' (skip)' : '';
+    console.log('  [' + meta.priority.padEnd(8) + '] ' + (exists ? kb + ' KB' : 'MISSING').padEnd(8) + ' ' + src.padEnd(8) + ' ' + meta.path.replace(novelAbs.replace(/\\/g, '/') + '/', '') + skipReason);
   }
   console.log('');
   console.log(formatDoctorReport(novelRoot, check, chapter));
@@ -1315,6 +1350,22 @@ function cmdNav(args) {
     console.log('# Nav build | ' + novelRoot + ' | ch-' + padded);
     console.log('  plan: ' + planPath.replace(/\\/g, '/'));
     console.log('  budget: ' + check.total_kb + ' KB / ' + check.budget.totalKb + ' KB · ' + check.circuit_state);
+    return;
+  }
+  if (sub === 'converge') {
+    const maxHotRefs = rest.includes('--max-refs') ? parseInt(rest[rest.indexOf('--max-refs') + 1], 10) : 5;
+    const maxDelivered = rest.includes('--max-delivered') ? parseInt(rest[rest.indexOf('--max-delivered') + 1], 10) : 5;
+    const reports = convergeNavIndices(novelAbs, { maxHotRefs, maxDelivered });
+    console.log('# Nav converge | ' + novelRoot);
+    for (const r of reports) console.log('  ' + r);
+    if (!reports.length) console.log('  ✓ INDEX files already within cap');
+    // 显示收敛后的大小
+    const nav = loadNavIndices(novelAbs);
+    console.log('\n  sizes:');
+    for (const [rel, meta] of Object.entries(nav.files)) {
+      console.log(`    ${rel}: ${Math.ceil(meta.bytes / 1024)} KB`);
+    }
+    console.log(`  total: ${Math.ceil(nav.total_bytes / 1024)} KB / cap 6 KB`);
     return;
   }
   if (sub === 'lookup') {
@@ -1398,4 +1449,36 @@ function cmdSync(args) {
     for (const t of agentTasks) console.log(`→ ${t}`);
   }
   process.exit(styleReady.ready && engineReady.ready ? 0 : 2);
+}
+
+function cmdSnapshot(args) {
+  const sub = args[0];
+  const novelRoot = resolveNovelRootFromArgs(args.slice(1));
+  if (!novelRoot) {
+    console.log('Usage: forge snapshot audit <stories/novel-id> --chapter N');
+    process.exit(1);
+  }
+  const novelAbs = path.resolve(ROOT, novelRoot);
+  const chIdx = args.indexOf('--chapter');
+  const chapter = chIdx !== -1 ? parseInt(args[chIdx + 1], 10) : null;
+  if (!chapter) {
+    console.error('Need --chapter N');
+    process.exit(1);
+  }
+
+  if (sub === 'audit') {
+    const audit = auditSnapshots(novelAbs, chapter);
+    console.log('# Snapshot audit | ' + novelRoot + ' | ch-' + padChapter(chapter) + '\n');
+    for (const r of audit.reports) console.log(r);
+    console.log('\n## Summary');
+    console.log('  snap total: ' + audit.summary.total_snap_kb + ' KB');
+    console.log('  orig total: ' + audit.summary.total_orig_kb + ' KB');
+    console.log('  saved: ' + audit.summary.saved_kb + ' KB (' + (100 - audit.summary.compression_ratio) + '% reduction)');
+    console.log('  missing: ' + audit.summary.missing);
+    console.log('  low compression: ' + audit.summary.no_compression);
+    process.exit(audit.summary.missing > 0 ? 1 : 0);
+  }
+
+  console.error('Usage: forge snapshot audit <stories/novel-id> --chapter N');
+  process.exit(1);
 }

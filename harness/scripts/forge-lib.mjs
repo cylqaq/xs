@@ -295,21 +295,23 @@ export function resolveManifest(manifestName, novelRoot, chapter) {
       const pathMatch = line.match(/^\s+-\s+path:\s*["']?(.+?)["']?\s*$/);
       if (pathMatch) {
         flushBeforeItem();
-        pendingBeforeItem = { path: subst(pathMatch[1]), priority: 'medium', optional: false, snapshot: false };
+        pendingBeforeItem = { path: subst(pathMatch[1]), priority: 'medium', optional: false, snapshot: false, source: 'default' };
       } else if (pendingBeforeItem) {
         // 解析属性行
         const prioMatch = line.match(/^\s+priority:\s*(\S+)/);
         const optMatch = line.match(/^\s+optional:\s*(true)/);
         const snapMatch = line.match(/^\s+snapshot:\s*(true)/);
+        const srcMatch = line.match(/^\s+source:\s*(\S+)/);
         if (prioMatch) pendingBeforeItem.priority = prioMatch[1];
         if (optMatch) pendingBeforeItem.optional = true;
         if (snapMatch) pendingBeforeItem.snapshot = true;
+        if (srcMatch) pendingBeforeItem.source = srcMatch[1];
       } else {
         // 旧格式：- "{novel_root}/..."
         const item = subst(line.trim().slice(2).replace(/^["']|["']$/g, ''));
         if (item) {
           sections.before.push(item);
-          sections.beforeMeta.push({ path: item, priority: 'medium', optional: false, snapshot: false });
+          sections.beforeMeta.push({ path: item, priority: 'medium', optional: false, snapshot: false, source: 'default' });
         }
       }
     } else if (line.trim().startsWith('- ') && current) {
@@ -699,8 +701,45 @@ export function writeContextRegistrySnapshots(novelAbs, chapter) {
   fs.mkdirSync(snapDir, { recursive: true });
   const out = {};
 
-  function writeSnap(snapName, origPath, filtered) {
+  // 加载 snapshot 限制配置
+  const repoRoot = path.resolve(__dirname, '../..');
+  const budgetPath = path.join(repoRoot, 'harness/context-budget.yaml');
+  const budgetText = loadText(budgetPath) || '';
+  const maxItems = parseInt(budgetText.match(/max_items_per_file:\s*(\d+)/)?.[1] || '25', 10);
+  const preferWithin = parseInt(budgetText.match(/prefer_due_within_chapters:\s*(\d+)/)?.[1] || '5', 10);
+
+  function writeSnap(snapName, origPath, filtered, chapterExtractor) {
     if (isFilteredYamlEmpty(filtered)) return;
+
+    // 如果超过 maxItems，按章节接近度排序后截断
+    const lines = filtered.split('\n');
+    const headerEnd = lines.findIndex(l => l.match(/^-\s+id:/));
+    if (headerEnd > 0 && chapterExtractor) {
+      const header = lines.slice(0, headerEnd).join('\n') + '\n';
+      const blocks = [];
+      let currentBlock = [];
+      for (let i = headerEnd; i < lines.length; i++) {
+        if (lines[i].match(/^-\s+id:/) && currentBlock.length > 0) {
+          blocks.push(currentBlock.join('\n'));
+          currentBlock = [];
+        }
+        currentBlock.push(lines[i]);
+      }
+      if (currentBlock.length > 0) blocks.push(currentBlock.join('\n'));
+
+      // 按章节接近度排序（越接近当前章节越优先）
+      const sorted = blocks.sort((a, b) => {
+        const chA = chapterExtractor(a) || 0;
+        const chB = chapterExtractor(b) || 0;
+        const distA = Math.abs(chA - chapter);
+        const distB = Math.abs(chB - chapter);
+        return distA - distB;
+      });
+
+      const limited = sorted.slice(0, maxItems);
+      filtered = header + limited.join('\n') + '\n';
+    }
+
     const snap = path.join(snapDir, snapName);
     fs.writeFileSync(snap, filtered, 'utf8');
     out[origPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
@@ -745,7 +784,7 @@ export function writeContextRegistrySnapshots(novelAbs, chapter) {
     writeSnap('character-state-active.yaml', cslPath, filterYamlEntries(cslText, 'entries', (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
       return status && ACTIVE_STATE.has(status);
-    }));
+    }), (b) => parseInt(b.match(/chapter:\s*(\d+)/)?.[1] || '0', 10));
   }
 
   const wslPath = path.join(novelAbs, 'registries/world-state-log.yaml');
@@ -754,7 +793,7 @@ export function writeContextRegistrySnapshots(novelAbs, chapter) {
     writeSnap('world-state-active.yaml', wslPath, filterYamlEntries(wslText, 'entries', (b) => {
       const status = b.match(/status:\s*(\S+)/)?.[1];
       return status && ACTIVE_STATE.has(status);
-    }));
+    }), (b) => parseInt(b.match(/chapter:\s*(\d+)/)?.[1] || '0', 10));
   }
 
   const nkPath = path.join(novelAbs, 'registries/narrative-sparks.yaml');
@@ -785,6 +824,49 @@ export function writeContextRegistrySnapshots(novelAbs, chapter) {
       const delivered = b.match(/delivered_chapter:\s*(\d+|null)?/)?.[1];
       return planned === chapter && (!delivered || delivered === 'null');
     }));
+  }
+
+  // appearance-log: 只保留最近 5 章的记录
+  const alPath = path.join(novelAbs, 'registries/appearance-log.yaml');
+  const alText = loadText(alPath);
+  if (alText) {
+    // appearance-log 使用 character_id 而非 id，需要特殊处理
+    const alLines = alText.split('\n');
+    const alHeader = alLines.findIndex(l => l.match(/^\s*-\s+character_id:/));
+    if (alHeader > 0) {
+      const header = alLines.slice(0, alHeader).join('\n') + '\n';
+      const blocks = [];
+      let currentBlock = [];
+      for (let i = alHeader; i < alLines.length; i++) {
+        if (alLines[i].match(/^\s*-\s+character_id:/) && currentBlock.length > 0) {
+          blocks.push(currentBlock.join('\n'));
+          currentBlock = [];
+        }
+        currentBlock.push(alLines[i]);
+      }
+      if (currentBlock.length > 0) blocks.push(currentBlock.join('\n'));
+
+      // 过滤最近 5 章的记录
+      const filtered = blocks.filter(b => {
+        const ch = parseInt(b.match(/chapter:\s*(\d+)/)?.[1] || '0', 10);
+        return ch >= chapter - 5 && ch <= chapter;
+      });
+
+      if (filtered.length > 0) {
+        // 按章节接近度排序
+        const sorted = filtered.sort((a, b) => {
+          const chA = parseInt(a.match(/chapter:\s*(\d+)/)?.[1] || '0', 10);
+          const chB = parseInt(b.match(/chapter:\s*(\d+)/)?.[1] || '0', 10);
+          return Math.abs(chA - chapter) - Math.abs(chB - chapter);
+        });
+
+        const limited = sorted.slice(0, maxItems);
+        const snapContent = header + limited.join('\n') + '\n';
+        const snap = path.join(snapDir, 'appearance-recent.yaml');
+        fs.writeFileSync(snap, snapContent, 'utf8');
+        out[alPath.replace(/\\/g, '/')] = snap.replace(/\\/g, '/');
+      }
+    }
   }
 
   return out;

@@ -1,4 +1,5 @@
 # 性格转变 — persona-voice-binder 预埋 planned；persona-evolution-warden 激活
+# 契约：skills/guides/character-persona-chain.md
 
 shifts: []
 # - id: ps-001
@@ -10,3 +11,19 @@ shifts: []
 #   voice_delta: 句长变短、少用语气词
 #   status: planned  # planned | active
 #   active_from_ch: null
+#   
+#   # 新增：角色弧关联
+#   linked_character_arc: ca-001  # 关联的角色弧 ID
+#   arc_stage: reactive_self  # unaware_self | reactive_self | integrated_self
+#   
+#   # 新增：The Lie 动摇
+#   lie_challenge: "同伴的背叛让角色重新审视信任的意义"
+#   
+#   # 新增：转变深度
+#   shift_depth: major  # minor | moderate | major | transformative
+#   
+#   # 新增：转变方向
+#   shift_direction: regression  # growth | regression | lateral | revelation
+#   
+#   # 新增：读者共鸣点
+#   resonance_point: "读者会理解角色的防御机制，因为每个人都有过被背叛的经历"

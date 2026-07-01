@@ -78,6 +78,24 @@ layers:
         optional: true
         prompt: 主角道德定位？（例：算计型反英雄、真反派、灰色疯子、表面恶实则救赎）
 
+      # 新增：心理深度字段
+      protagonist_wound:
+        min_chars: 8
+        optional: true
+        prompt: 主角的核心创伤是什么？（例：8岁时被最信任的朋友背叛、目睹亲人死亡、被遗弃）
+      protagonist_lie:
+        min_chars: 8
+        optional: true
+        prompt: 主角相信的错误信念是什么？（例：只有强大才能保护自己、爱必须靠努力获得）
+      protagonist_want_vs_need:
+        min_chars: 8
+        optional: true
+        prompt: 主角的外在欲望和内在需求分别是什么？（例：Want=成为最强，Need=学会信任）
+      protagonist_contradiction:
+        min_chars: 8
+        optional: true
+        prompt: 主角的核心矛盾是什么？（例：极度自信 vs 深层恐惧失败）
+
   l3:
     label: Layer 3 书名
     fields:

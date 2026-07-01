@@ -50,9 +50,16 @@ before:
   - path: "{novel_root}/registries/persona-shifts.yaml"
     priority: medium
     source: from_index
+  - path: "{novel_root}/registries/character-arcs.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/character-resonance.yaml"
+    priority: medium
+    source: from_index
   - path: "{novel_root}/registries/appearance-log.yaml"
     priority: medium
     source: from_index
+    snapshot: true
   # snapshot 注册表（snapshot 由 forge context 生成；空 snapshot 自动跳过）
   - path: "{novel_root}/registries/foreshadowing.yaml"
     priority: medium

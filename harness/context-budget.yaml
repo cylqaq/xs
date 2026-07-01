@@ -78,7 +78,7 @@ snapshot_registries:
   - registries/cool-points.yaml
 
 snapshot_limits:
-  max_items_per_file: 25         # snapshot 单文件最多 25 条；超出按 due_within_5ch 排序裁剪
+  max_items_per_file: 12         # snapshot 单文件最多 12 条；超出按章节接近度排序裁剪
   prefer_due_within_chapters: 5
 
 # ─────────────────────────────────────────────────────────────

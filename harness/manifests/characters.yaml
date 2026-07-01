@@ -20,6 +20,8 @@ during_write:
   - "{novel_root}/canon/entities/graph.yaml"
   - "{novel_root}/registries/appearance-log.yaml"
   - "{novel_root}/registries/persona-shifts.yaml"
+  - "{novel_root}/registries/character-arcs.yaml"
+  - "{novel_root}/registries/character-resonance.yaml"
 
 after_must_update:
   - "{novel_root}/registries/foreshadowing.yaml"

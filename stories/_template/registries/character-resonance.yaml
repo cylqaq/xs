@@ -1,0 +1,41 @@
+# 角色共鸣点登记 — 追踪角色的读者共鸣点
+# 维护：conflict-architect 规划；retention-analyst 章后确认兑现
+# 契约：skills/guides/character-soul-card-schema.md
+
+# 共鸣类型定义：
+# - empathy: 读者理解角色的感受，产生共情
+# - admiration: 读者敬佩角色的品质或行为
+# - pity: 读者怜悯角色的遭遇
+# - fear: 读者担心角色的命运
+# - catharsis: 读者在角色经历中获得情感释放
+# - recognition: 读者在角色身上看到自己的影子
+
+items: []
+# - id: cr-001
+#   character_id: char-protagonist
+#   type: empathy  # empathy | admiration | pity | fear | catharsis | recognition
+#   
+#   # 共鸣触发条件
+#   trigger_condition: "角色面对童年创伤的回忆"
+#   
+#   # 具体场景
+#   scene_description: "角色在新环境中本能地保持距离，不自觉地摩挲旧伤疤"
+#   
+#   # 共鸣强度
+#   intensity: 4  # 1-5
+#   
+#   # 读者共鸣机制
+#   reader_mechanism: "每个读者都有过被背叛或不信任的经历，角色的行为模式唤起读者的个人记忆"
+#   
+#   # 计划兑现章节
+#   planned_chapter: 5
+#   delivered_chapter: null
+#   
+#   # 关联元素
+#   linked_wound: "8岁被背叛的创伤"
+#   linked_lie: "只有强大到无人能敌，才能保护自己"
+#   linked_arc: ca-001
+#   
+#   # 状态
+#   status: planned  # planned | delivered | missed
+#   notes: ""

@@ -1,0 +1,68 @@
+# 角色弧追踪器 — 追踪角色的内在转变
+# 维护：persona-voice-binder 预埋 planned；persona-evolution-warden 章后确认激活
+# 读者：context-router JIT 加载（status: active）
+# 契约：skills/guides/character-soul-card-schema.md
+
+# 弧类型定义：
+# - positive_change: 角色克服 The Lie，拥抱 The Truth，实现成长
+# - negative_fall: 角色深陷 The Lie，拒绝 The Truth，走向堕落
+# - flat: 角色保持内在稳定，用已有的 Truth 改变周围世界
+
+arcs: []
+# - id: ca-001
+#   character_id: char-protagonist
+#   arc_type: positive_change  # positive_change | negative_fall | flat
+#   
+#   # 核心心理结构
+#   the_lie: "只有强大到无人能敌，才能保护自己不被伤害"
+#   the_truth: "真正的强大来自信任和连接"
+#   the_wound: "8岁时被最信任的朋友背叛，当众羞辱"
+#   
+#   # Want vs Need
+#   want: "成为最强的剑客，打败所有对手"
+#   need: "学会信任同伴，理解真正的力量来自连接"
+#   
+#   # 弧阶段追踪
+#   stages:
+#     - stage: unaware_self
+#       description: "角色深信 The Lie，不自觉地被驱动"
+#       chapter_range: "1-5"
+#       key_scene: "角色独自训练，拒绝他人帮助"
+#       status: completed  # completed | active | planned
+#     
+#     - stage: reactive_self
+#       description: "The Lie 受到挑战，角色本能地防御"
+#       chapter_range: "6-15"
+#       key_scene: "被迫与同伴合作，但仍保持距离"
+#       status: planned
+#     
+#     - stage: integrated_self
+#       description: "角色接受 The Truth，实现整合"
+#       chapter_range: "16-20"
+#       key_scene: "在关键时刻信任同伴，共同战胜困难"
+#       status: planned
+#   
+#   # 关键转折点
+#   turning_points:
+#     - id: tp-001
+#       type: lie_tested  # lie_tested | truth_glimpsed | truth_accepted | truth_rejected
+#       chapter: 8
+#       event: "同伴在危急时刻保护了角色"
+#       impact: "The Lie 第一次被动摇"
+#       status: planned
+#     
+#     - id: tp-002
+#       type: truth_glimpsed
+#       chapter: 12
+#       event: "角色意识到独自行动的局限性"
+#       impact: "开始怀疑 The Lie"
+#       status: planned
+#   
+#   # 与故事弧关联
+#   linked_story_arc: arc-main
+#   
+#   # 状态追踪
+#   status: planned  # planned | active | completed
+#   current_stage: unaware_self
+#   last_updated_chapter: null
+#   notes: ""

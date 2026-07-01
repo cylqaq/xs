@@ -13,6 +13,8 @@ before:
 during_write:
   - "{novel_root}/canon/characters/voice-matrix.yaml"
   - "{novel_root}/registries/persona-shifts.yaml"
+  - "{novel_root}/registries/character-arcs.yaml"
+  - "{novel_root}/registries/character-resonance.yaml"
 
 validators:
   - structure
