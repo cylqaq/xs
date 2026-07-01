@@ -1,0 +1,34 @@
+# 通用叙述文笔母版 — prose-style-architect 按 seed 升格时合并覆盖
+
+genre_key: general
+label: 通用叙事
+
+mechanics:
+  sentence_length: mixed
+  paragraph_max_sentences: 6
+  punctuation:
+    em_dash: allow
+    exclamation: sparse
+
+distance: neutral
+emotional_temperature: balanced
+
+signature_moves:
+  - 场景切入用具体感官锚点，避免空泛抒情
+  - 对话与叙述交替，单段叙述不超过 4 句
+
+anti_patterns:
+  - 连续三句以上纯心理独白无外在动作
+  - 说明文式世界观灌输
+  - 形容词堆叠超过 3 个连用
+
+default_kill_list:
+  - 众所周知
+  - 不得不说
+
+genre_conventions:
+  pacing: 中等节奏，章末留悬念
+  hook_style: 动作或异常信息开场
+
+writing_plan_hints:
+  minWordsPerChapter: 2000

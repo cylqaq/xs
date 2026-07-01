@@ -1,0 +1,104 @@
+# seed-intake 题库 — forge intake questions 读取；Agent 每轮最多问 3 题
+# 不依赖 Cursor OS；对话追问 + 答案写入 seed/*.yaml
+
+author_intent:
+  section: 核心幻想
+  min_chars: 24
+  prompt: 用 2–4 句话描述你的核心幻想：读者为什么要追这本书？最想看到的情绪或画面是什么？
+
+layers:
+  l1:
+    label: Layer 1 核心定位
+    fields:
+      genre:
+        min_chars: 2
+        prompt: 这本书的题材与基调是什么？（例：都市修仙、悬疑推理、甜宠、末世）
+      protagonist:
+        min_chars: 8
+        prompt: 主角是谁？请写清其外在身份、核心欲望、以及一个致命弱点或秘密。
+      core_conflict:
+        min_chars: 8
+        prompt: 故事的核心矛盾是什么？谁与谁（或什么）在对抗？赌注是什么？
+
+  l2:
+    label: Layer 2 深度定制
+    file: seed/layer2-customize.yaml
+    fields:
+      world_direction:
+        min_chars: 6
+        prompt: 世界观方向：时代/地理/社会结构的大致轮廓？与同类作品有何不同？
+      pov_tone:
+        min_chars: 4
+        prompt: 叙述视角与基调？（例：第三人称限知、冷峻、轻松、黑暗）
+      theme:
+        min_chars: 4
+        prompt: 你想探讨的主题或母题是什么？（一句即可）
+      audience:
+        min_chars: 2
+        prompt: 目标读者是谁？（例：男频爽文、女性向、轻小说读者）
+      target_chapters:
+        type: number
+        min: 10
+        prompt: 计划写多少章？（建议先定 40–120 的可连载体量）
+      narrative_age_span:
+        min_chars: 4
+        optional: true
+        prompt: 叙事主体年龄段？（例：11-18 岁校园、成年职场、全龄跨世）
+      protagonist_age_gap:
+        min_chars: 2
+        optional: true
+        prompt: 双主角年龄差或关系位？（例：年长 2 岁学长、同龄、跨世不变）
+      ability_cost_tone:
+        min_chars: 4
+        optional: true
+        prompt: 能力代价强度？（例：高代价记忆灼蚀/自伤、低代价疲劳、无超自然）
+      prose_reference:
+        min_chars: 4
+        prompt: 文笔参考？（作者/作品/影视腔调，例：冷峻 noir、轻快甜宠、猫腻式絮语）
+      sentence_rhythm:
+        min_chars: 2
+        prompt: 句长节奏？（短促 / 绵长 / 混合）
+      emotional_temperature:
+        min_chars: 2
+        prompt: 情绪温度？（冷 / 暖 / 黑色幽默 / 压抑 / 热血）
+      hard_bans:
+        min_chars: 2
+        optional: true
+        prompt: 绝对不要的元素？（例：说明文腔、玛丽苏、频繁感叹号、某类烂梗）
+      loop_structure:
+        min_chars: 4
+        optional: true
+        prompt: 轮回/副本结构？（例：单场景十日循环、多副本串联、无轮回仅层层揭世界真相）
+      revelation_pacing:
+        min_chars: 4
+        optional: true
+        prompt: 世界观揭露节奏？（例：每卷揭一层、每 10 章一个小真相、终局才见底层）
+      protagonist_alignment:
+        min_chars: 4
+        optional: true
+        prompt: 主角道德定位？（例：算计型反英雄、真反派、灰色疯子、表面恶实则救赎）
+
+      # 新增：心理深度字段
+      protagonist_wound:
+        min_chars: 8
+        optional: true
+        prompt: 主角的核心创伤是什么？（例：8岁时被最信任的朋友背叛、目睹亲人死亡、被遗弃）
+      protagonist_lie:
+        min_chars: 8
+        optional: true
+        prompt: 主角相信的错误信念是什么？（例：只有强大才能保护自己、爱必须靠努力获得）
+      protagonist_want_vs_need:
+        min_chars: 8
+        optional: true
+        prompt: 主角的外在欲望和内在需求分别是什么？（例：Want=成为最强，Need=学会信任）
+      protagonist_contradiction:
+        min_chars: 8
+        optional: true
+        prompt: 主角的核心矛盾是什么？（例：极度自信 vs 深层恐惧失败）
+
+  l3:
+    label: Layer 3 书名
+    fields:
+      title:
+        min_chars: 2
+        prompt: 书名或暂定书名是什么？（可先用工作标题，后续可改）

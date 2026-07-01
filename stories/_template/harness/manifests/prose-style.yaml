@@ -1,0 +1,45 @@
+task: prose-style
+description: Phase 00b — prose-style-architect 叙述文笔契约
+
+skills:
+  - prose-style-architect
+
+before:
+  - "{novel_root}/seed/layer1-core.yaml"
+  - "{novel_root}/seed/layer2-customize.yaml"
+  - "{novel_root}/novel.yaml"
+  - "{novel_root}/canon/background/premise.md"
+  - "{novel_root}/../../harness/style-profiles/general.yaml"
+  - "{novel_root}/../../harness/style-profiles/ai-crutch-words.yaml"
+  - "{novel_root}/../../workspace/user-preferences.json"
+
+optional_if_exists:
+  - "{novel_root}/../../harness/style-profiles/xuanhuan.yaml"
+  - "{novel_root}/../../harness/style-profiles/mystery.yaml"
+  - "{novel_root}/../../harness/style-profiles/romance.yaml"
+  - "{novel_root}/../../harness/style-profiles/survival-puzzle.yaml"
+  - "{novel_root}/seed/author-intent.md"
+
+during_write:
+  - "{novel_root}/canon/style/prose-profile.yaml"
+  - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/style/glossary.md"
+  - "{novel_root}/canon/style/exemplars/positive.md"
+  - "{novel_root}/canon/style/exemplars/negative.md"
+  - "{novel_root}/state/writing-plan.json"
+  - "{novel_root}/state/checkpoints/prose-style.yaml"
+
+after_must_update:
+  - "{novel_root}/novel.yaml"
+
+validators:
+  - structure
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

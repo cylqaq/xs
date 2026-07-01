@@ -1,0 +1,20 @@
+task: persona-voice
+description: Phase 02c — persona-voice-binder 声线与转变
+
+skills:
+  - persona-voice-binder
+
+before:
+  - "{novel_root}/canon/style/prose-profile.yaml"
+  - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/characters/cast-roster.yaml"
+  - "{novel_root}/canon/entities/graph.yaml"
+
+during_write:
+  - "{novel_root}/canon/characters/voice-matrix.yaml"
+  - "{novel_root}/registries/persona-shifts.yaml"
+  - "{novel_root}/registries/character-arcs.yaml"
+  - "{novel_root}/registries/character-resonance.yaml"
+
+validators:
+  - structure

@@ -1,0 +1,103 @@
+# 登记册字段扩展（可选 · Registry Field Extensions）
+
+> 吸纳外部 schema 建议；**均为可选字段**，不破坏现有 validator。  
+> 写者：`foreshadow-engineer`、`hook-manager`、`continuity-warden`、`retention-analyst`、`persona-voice-binder`
+
+## 与现有文件映射（避免重复）
+
+| DeepSeek 建议 | 框架处置 |
+|---------------|----------|
+| timeline.yaml | 已有 `canon/timeline/master.yaml`，不新建 |
+| world-building-log | 已有 `canon/world/rules.md`；章后规则增量写 continuity-log + world-state-log |
+| character-arc.yaml | **新增** `registries/character-arcs.yaml`（角色弧追踪器，与 `persona-shifts.yaml` 互补） |
+| character-state-log | **新增** `registries/character-state-log.yaml`（伤痕/能力/装备，见 state-evolution-chain） |
+| world-state-log | **新增** `registries/world-state-log.yaml`（地点破坏/修复，见 state-evolution-chain） |
+| relationship-tracking | **新增** `registries/relationship-tracking.yaml`（信任度 delta，补 graph 边） |
+| scene-registry | 可选；长篇启用，beats 已含场景时不必重复 |
+| pacing-metrics | 归入 `state/retention/ch-NNN.yaml`，不单独文件 |
+| emotional-beat | **`registries/emotional-beats.yaml`**（第九轮）；章后 retention 标 delivered |
+| character-resonance | **新增** `registries/character-resonance.yaml`（角色共鸣点，见 character-soul-card-schema） |
+
+## 可扩展字段（在对应 registry item 上追加）
+
+### foreshadowing.yaml
+
+`importance`, `type`, `expected_payoff_range`, `misdirection`, `planted_scene_desc`, `hint_level`
+
+### hooks.yaml
+
+`priority`, `resolved_in_chapter`, `resolution_quality`, `related_threads`
+
+### chekhov-guns.yaml
+
+`last_mentioned_chapter`, `expected_payoff_chapter`, `importance`, `category`, `related_characters`, `payoff_scene_desc`
+
+### micro-payoffs.yaml
+
+`promise_text`, `character_making_promise`, `recipient`, `consequence_if_overdue`, `is_exact`
+
+### open-threads.yaml
+
+完整结构见 `_template/registries/open-threads.yaml`
+
+### plot-debt.yaml items
+
+`debt_id`, `type`, `ref_id`, `due_chapter`, `current_status`, `resolution_chapter`  
+summary 可增加：`total_planted`, `total_resolved`, `critical_debt_items`, `recommended_actions`
+
+### persona-shifts.yaml
+
+`progression`, `reverse_possible`, `shift_verified_chapter`, `related_events`, **`linked_character_arc`**, **`arc_stage`**, **`lie_challenge`**, **`shift_depth`**, **`shift_direction`**, **`resonance_point`**
+
+### appearance-log.yaml
+
+`scene_id`, `location`, `emotional_state`, `interaction_with`, `important_action`
+
+### character-state-log.yaml
+
+`category`, `state_key`, `permanence`, `visibility`, `callback_potential`, `linked_refs`, `superseded_by`
+
+### world-state-log.yaml
+
+`entity_type`, `entity_id`, `reversible`, `callback_potential`, `linked_refs`
+
+### emotional-beats.yaml
+
+`type` (gut_punch|catharsis|bittersweet|dread|relief), `planned_chapter`, `delivered_chapter`, `intensity`, `linked_conflict`, `linked_arc`
+
+### cool-points.yaml（补充）
+
+`linked_conflict` — 与 story-engine 对立 id 交叉引用
+
+### narrative-sparks.yaml
+
+`narrative_potential`, `impact_tier`, `promotion_target`, `linked_registry_id`, `target_chapter`, `manuscript_anchor`, `triage_notes`
+
+### character-arcs.yaml（新增）
+
+`arc_type` (positive_change|negative_fall|flat), `the_lie`, `the_truth`, `the_wound`, `want`, `need`, `stages`, `turning_points`, `linked_story_arc`, `status`, `current_stage`
+
+### character-resonance.yaml（新增）
+
+`type` (empathy|admiration|pity|fear|catharsis|recognition), `trigger_condition`, `scene_description`, `intensity`, `reader_mechanism`, `planned_chapter`, `delivered_chapter`, `linked_wound`, `linked_lie`, `linked_arc`
+
+## 新增登记册（模板已含）
+
+| 文件 | 职责 | 维护 Skill |
+|------|------|------------|
+| `relationship-tracking.yaml` | 信任/情感 delta | cast-network 初始化；continuity 章后 |
+| `dialogue-promises.yaml` | 无截止日对话承诺 | hook-manager 埋；continuity 章后 |
+| `motifs.yaml` | 母题/意象重复 | foreshadow-engineer；continuity |
+| `callbacks.yaml` | 前后呼应 | foreshadow-engineer；continuity |
+| **`character-arcs.yaml`** | **角色弧追踪器** | **persona-voice-binder 预埋；persona-evolution-warden 章后更新** |
+| **`character-resonance.yaml`** | **角色共鸣点登记** | **persona-voice-binder 预埋；retention-analyst 章后兑现** |
+
+## 逾期聚合
+
+`retention-analyst` 扫描 `due_chapter` / `must_resolve_by` < 当前章且 open → 写入 `plot-debt.summary.recommended_actions`
+
+## 联动
+
+- [`character-soul-card-schema.md`](character-soul-card-schema.md)
+- [`character-persona-chain.md`](character-persona-chain.md)
+- [`story-engine-protocol.md`](story-engine-protocol.md)

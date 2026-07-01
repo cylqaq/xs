@@ -1,0 +1,44 @@
+# 生存解谜 / 无限流悬疑 — prose-style-architect 按 seed 升格时合并覆盖
+
+genre_key: survival-puzzle
+label: 生存解谜无限流
+aliases:
+  - 无限流
+  - 生存游戏
+  - 解谜
+  - 十日终焉
+  - 规则怪谈
+  - 大逃杀
+
+mechanics:
+  sentence_length: short_to_medium
+  paragraph_max_sentences: 4
+  punctuation:
+    em_dash: sparse
+    exclamation: rare
+
+distance: close
+emotional_temperature: cold_controlled
+
+signature_moves:
+  - 规则与异常细节并列呈现，不提前解释机制
+  - 主角内心算计与外在冷静形成反差（疯批反派型尤甚）
+  - 章末用未验证假设或规则裂缝收束，不用总结式揭秘
+
+anti_patterns:
+  - 叙述者一次性说清世界观底层
+  - 巧合或天降信息解决核心谜题
+  - 副本之间无因果，纯换皮重复
+  - 反派主角突然无铺垫洗白
+
+default_kill_list:
+  - 一切都说得通了
+  - 真相大白
+  - 众所周知
+
+genre_conventions:
+  pacing: 信息密度高，智斗场面优先于武力
+  hook_style: 规则悖论、记忆断裂、反常计数或身份错位
+
+writing_plan_hints:
+  minWordsPerChapter: 2000

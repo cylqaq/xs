@@ -1,0 +1,39 @@
+task: rebuild-canon
+description: Phase 08 — canon-rebuilder 元数据重建（禁止改 manuscripts）
+
+skills:
+  - canon-rebuilder
+
+before:
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/novel.yaml"
+  - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/registries/foreshadowing.yaml"
+  - "{novel_root}/registries/hooks.yaml"
+  - "{novel_root}/registries/plot-debt.yaml"
+  - "{novel_root}/state/memory/summary-rolling.md"
+
+optional_if_exists:
+  - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
+
+during_write:
+  - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/registries/continuity-log.yaml"
+  - "{novel_root}/state/memory/summary-rolling.md"
+
+after_must_update:
+  - "{novel_root}/state/phase.yaml"
+
+validators:
+  - structure
+  - registry-consistency
+  - continuity
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

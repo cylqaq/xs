@@ -1,0 +1,36 @@
+task: worldbuilding
+description: Phase 01 — world-architect 世界观
+
+skills:
+  - novel-orchestrator
+  - world-architect
+
+before:
+  - "{novel_root}/seed/author-intent.md"
+  - "{novel_root}/canon/style/prose-profile.yaml"
+  - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/background/premise.md"
+  - "{novel_root}/state/phase.yaml"
+
+during_write:
+  - "{novel_root}/canon/world/overview.md"
+  - "{novel_root}/canon/world/rules.md"
+  - "{novel_root}/canon/world/power-defects.yaml"
+  - "{novel_root}/canon/background/era.md"
+  - "{novel_root}/canon/entities/graph.yaml"
+
+after_must_update:
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/registries/continuity-log.yaml"
+
+validators:
+  - structure
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

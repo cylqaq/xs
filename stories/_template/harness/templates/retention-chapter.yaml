@@ -1,0 +1,7 @@
+# retention-analyst 章后输出 — 复制为 state/retention/ch-{NNN}.yaml
+chapter: 0
+opening_hook_score: 0
+cool_point_count: 0
+micro_payoffs_delivered: []
+debt_ratio: 0.0
+alerts: []

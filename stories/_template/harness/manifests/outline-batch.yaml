@@ -1,0 +1,49 @@
+task: outline-batch
+description: Phase 03–04 — plot + conflict-engine + foreshadow/hook + batch-planner（≤2 章 beats）
+
+skills:
+  - plot-architect
+  - conflict-architect
+  - foreshadow-engineer
+  - hook-manager
+  - batch-planner
+  - retention-analyst
+
+before:
+  - "{novel_root}/canon/world/overview.md"
+  - "{novel_root}/canon/world/rules.md"
+  - "{novel_root}/canon/characters/index.yaml"
+  - "{novel_root}/canon/background/premise.md"
+  - "{novel_root}/state/batches/batch-001.yaml"
+
+during_write:
+  - "{novel_root}/canon/plot/outline.md"
+  - "{novel_root}/canon/plot/arcs.yaml"
+  - "{novel_root}/canon/plot/story-engine.yaml"
+  - "{novel_root}/canon/plot/beats/ch-{chapter_padded}.md"
+  - "{novel_root}/registries/foreshadowing.yaml"
+  - "{novel_root}/registries/hooks.yaml"
+  - "{novel_root}/registries/chekhov-guns.yaml"
+  - "{novel_root}/registries/open-threads.yaml"
+  - "{novel_root}/registries/cool-points.yaml"
+  - "{novel_root}/registries/emotional-beats.yaml"
+  - "{novel_root}/registries/relationship-tracking.yaml"
+  - "{novel_root}/registries/micro-payoffs.yaml"
+  - "{novel_root}/registries/plot-debt.yaml"
+
+after_must_update:
+  - "{novel_root}/state/batches/batch-001.yaml"
+  - "{novel_root}/state/phase.yaml"
+
+validators:
+  - registry-consistency
+  - structure
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

@@ -1,0 +1,192 @@
+# 开书创建链 — 每 Skill 隔离会话，handoff 后方可进入下一步
+workflow: creation-chain
+description: ideation → prose-style → worldbuilding → characters（3 Skill）→ outline（6 Skill，含 conflict-architect）→ drafting 入口
+
+steps:
+  - id: orchestrate-open
+    skill: novel-orchestrator
+    manifest: bootstrap
+    isolation: true
+    cli_preflight:
+      - manifest bootstrap
+
+  - id: seed-intake
+    skill: seed-intake
+    manifest: bootstrap
+    isolation: true
+    reads_handoff:
+      - novel-orchestrator
+    cli_preflight:
+      - intake status
+      - intake questions
+    cli_postflight:
+      - intake check
+    handoff_writes:
+      - state/working/handoffs/creation-seed-intake.yaml
+
+  - id: bootstrap
+    skill: novel-bootstrap
+    manifest: bootstrap
+    isolation: true
+    reads_handoff:
+      - seed-intake
+    gate: intake_ready
+    requires_files:
+      - canon/background/premise.md
+    cli_preflight:
+      - intake check
+    cli_postflight:
+      - validate --task bootstrap
+    handoff_writes:
+      - state/working/handoffs/creation-novel-bootstrap.yaml
+
+  - id: prose-style
+    skill: prose-style-architect
+    manifest: prose-style
+    isolation: true
+    reads_handoff:
+      - novel-bootstrap
+    requires_files:
+      - canon/style/prose-profile.yaml
+      - canon/style/voice.md
+    cli_postflight:
+      - validate --task prose-style
+    handoff_writes:
+      - state/working/handoffs/creation-prose-style-architect.yaml
+
+  - id: world
+    skill: world-architect
+    manifest: worldbuilding
+    isolation: true
+    reads_handoff:
+      - prose-style-architect
+    requires_files:
+      - canon/world/overview.md
+      - canon/world/rules.md
+    cli_postflight:
+      - validate --task worldbuilding
+    handoff_writes:
+      - state/working/handoffs/creation-world-architect.yaml
+
+  - id: characters
+    skill: character-forge
+    manifest: characters
+    isolation: true
+    reads_handoff:
+      - world-architect
+    requires_files:
+      - canon/characters/index.yaml
+    cli_postflight:
+      - validate --task characters
+    handoff_writes:
+      - state/working/handoffs/creation-character-forge.yaml
+
+  - id: cast-network
+    skill: cast-network-weaver
+    manifest: characters
+    isolation: true
+    reads_handoff:
+      - character-forge
+    requires_files:
+      - canon/characters/cast-roster.yaml
+      - canon/entities/graph.yaml
+    cli_postflight:
+      - validate --task cast-network
+    handoff_writes:
+      - state/working/handoffs/creation-cast-network-weaver.yaml
+
+  - id: persona-voice
+    skill: persona-voice-binder
+    manifest: characters
+    isolation: true
+    reads_handoff:
+      - cast-network-weaver
+    requires_files:
+      - canon/characters/voice-matrix.yaml
+      - registries/persona-shifts.yaml
+    cli_postflight:
+      - validate --task persona-voice
+    handoff_writes:
+      - state/working/handoffs/creation-persona-voice-binder.yaml
+
+  - id: plot-outline
+    skill: plot-architect
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - persona-voice-binder
+    requires_files:
+      - canon/plot/outline.md
+      - canon/plot/arcs.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-plot-architect.yaml
+
+  - id: conflict-engine
+    skill: conflict-architect
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - plot-architect
+    requires_files:
+      - canon/plot/story-engine.yaml
+      - registries/emotional-beats.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-conflict-architect.yaml
+
+  - id: foreshadow
+    skill: foreshadow-engineer
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - conflict-architect
+    requires_files:
+      - registries/foreshadowing.yaml
+      - registries/chekhov-guns.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-foreshadow-engineer.yaml
+
+  - id: hooks
+    skill: hook-manager
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - foreshadow-engineer
+    requires_files:
+      - registries/hooks.yaml
+      - registries/open-threads.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-hook-manager.yaml
+
+  - id: batch-planner
+    skill: batch-planner
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - hook-manager
+    requires_files:
+      - canon/plot/beats/ch-{chapter_padded}.md
+      - state/batches/batch-001.yaml
+    handoff_writes:
+      - state/working/handoffs/creation-batch-planner.yaml
+
+  - id: outline-retention
+    skill: retention-analyst
+    manifest: outline-batch
+    isolation: true
+    reads_handoff:
+      - batch-planner
+    requires_files:
+      - registries/plot-debt.yaml
+    cli_postflight:
+      - validate --task outline-batch --chapter {chapter}
+    handoff_writes:
+      - state/working/handoffs/creation-retention-analyst.yaml
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

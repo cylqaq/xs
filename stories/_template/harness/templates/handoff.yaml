@@ -1,0 +1,14 @@
+# Skill 交接单 — forge handoff complete 写入
+skill: ""
+chapter: 0
+status: complete
+workflow: ""
+step_id: ""
+completed_at: null
+isolation_ack: true
+artifacts:
+  - path: ""
+    exists: true
+cli_postflight_passed: []
+next_skill: ""
+notes: ""

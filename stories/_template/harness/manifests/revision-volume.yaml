@@ -1,0 +1,38 @@
+task: revision-volume
+description: Phase 07 — chief-editor + style-guardian 卷级精修
+
+skills:
+  - chief-editor
+  - style-guardian
+  - patch-refiner
+  - rule-reviewer
+
+before:
+  - "{novel_root}/state/phase.yaml"
+  - "{novel_root}/registries/plot-debt.yaml"
+  - "{novel_root}/canon/style/prose-profile.yaml"
+  - "{novel_root}/canon/style/voice.md"
+  - "{novel_root}/canon/style/glossary.md"
+  - "{novel_root}/state/checkpoints/revision-vol-01.yaml"
+
+optional_if_exists:
+  - "{novel_root}/state/reviews/ch-{chapter_padded}.json"
+
+during_write:
+  - "{novel_root}/state/revisions/ch-{chapter_padded}-r1/"
+
+after_must_update:
+  - "{novel_root}/state/phase.yaml"
+
+validators:
+  - continuity
+  - registry-consistency
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下

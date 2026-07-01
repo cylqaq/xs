@@ -1,0 +1,147 @@
+task: chapter-draft
+description: 写第 N 章前的 JIT 上下文清单（v2 · 导航优先 / 防雪球）
+budget_ref: harness/context-budget.yaml
+nav_required:
+  - canon/INDEX.yaml
+  - registries/INDEX.yaml
+  - state/memory/INDEX.yaml
+
+before:
+  # === critical: 永不裁剪 · 总 ≤ 30 KB ===
+  - path: "{novel_root}/canon/plot/beats/ch-{chapter_padded}.md"
+    priority: critical
+  - path: "{novel_root}/state/memory/summary-rolling.md"
+    priority: critical
+  - path: "{novel_root}/state/memory/chapter-summaries/ch-{prev_chapter_padded}.yaml"
+    priority: critical
+    optional: true
+  - path: "{novel_root}/canon/INDEX.yaml"
+    priority: critical
+  - path: "{novel_root}/registries/INDEX.yaml"
+    priority: critical
+  - path: "{novel_root}/state/memory/INDEX.yaml"
+    priority: critical
+
+  # === high: 文笔 + 叙事引擎（永读子集；INDEX 决定角色） ===
+  - path: "{novel_root}/canon/style/voice.md"
+    priority: high
+  - path: "{novel_root}/canon/style/prose-profile.yaml"
+    priority: high
+  - path: "{novel_root}/canon/style/exemplars/positive.md"
+    priority: high
+  - path: "{novel_root}/canon/background/premise.md"
+    priority: high
+  - path: "{novel_root}/canon/plot/story-engine.yaml"
+    priority: high
+
+  # === medium: 由 navigator 按 INDEX 命中拉取（不再默认全量） ===
+  - path: "{novel_root}/canon/characters/cast-roster.yaml"
+    priority: medium
+    source: from_index            # navigator 用 INDEX.characters[].voice_refs 过滤
+  - path: "{novel_root}/canon/characters/voice-matrix.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/relationship-tracking.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/chekhov-guns.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/persona-shifts.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/character-arcs.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/character-resonance.yaml"
+    priority: medium
+    source: from_index
+  - path: "{novel_root}/registries/appearance-log.yaml"
+    priority: medium
+    source: from_index
+    snapshot: true
+  # snapshot 注册表（snapshot 由 forge context 生成；空 snapshot 自动跳过）
+  - path: "{novel_root}/registries/foreshadowing.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/hooks.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/open-threads.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/character-state-log.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/world-state-log.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/narrative-sparks.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/emotional-beats.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+  - path: "{novel_root}/registries/cool-points.yaml"
+    priority: medium
+    snapshot: true
+    source: from_index
+
+  # === low: 默认不读 · 仅 navigator 显式 lookup 时按需 ===
+  - path: "{novel_root}/novel.yaml"
+    priority: low
+    source: on_demand
+  - path: "{novel_root}/state/phase.yaml"
+    priority: low
+    source: on_demand
+  - path: "{novel_root}/canon/style/glossary.md"
+    priority: low
+    source: on_demand
+  - path: "{novel_root}/canon/plot/outline-amendments.md"
+    priority: low
+    source: on_demand
+
+skills:
+  - navigator
+  - context-router
+  - chapter-production
+  - dialogue-craftsman
+
+during_write:
+  - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+
+during_write_by_skill:
+  navigator: []
+  context-router: []
+  chapter-production:
+    - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+  dialogue-craftsman:
+    - "{novel_root}/manuscripts/chapters/ch-{chapter_padded}.md"
+
+after_must_update:
+  - "{novel_root}/state/memory/chapter-summaries/ch-{chapter_padded}.yaml"
+  - "{novel_root}/state/memory/summary-rolling.md"
+  - "{novel_root}/state/memory/INDEX.yaml"
+  - "{novel_root}/registries/continuity-log.yaml"
+  - "{novel_root}/novel.yaml"
+
+validators:
+  - continuity
+  - registry-consistency
+  - context-budget
+
+# 字数哲学与根项目保护（新增）
+word_count_philosophy:
+  reference: skills/guides/word-count-philosophy.md
+  principle: 故事合理性优先于字数达标
+
+root_project_protection:
+  reference: docs/ops/root-project-protection.md
+  principle: 根项目是万能的母版，书籍项目应放在 e:/个人/写书/ 下
